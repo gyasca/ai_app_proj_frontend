@@ -14,6 +14,7 @@ import Register from "./Register";
 import StudentCompetenceMapPage from "./StudentCompetenceMapPage";
 import ViewCertificates from "./ViewCertificates";
 import HealthDashboard from "./HealthDashboard";
+import OhamodelPredict from "./ohamodel/OhamodelPredict";
 // import Login from './Login'
 // import Register from './Register'
 // import Verify from './Verify'
@@ -52,6 +53,7 @@ function UserRoutes() {
       <Route path="/skillmap2" element={<ViewSkillMap2 />} />
       <Route path="/test1" element={<Test1 />} />
       <Route path="/dashboard" element={<HealthDashboard />} />
+      <Route path="/oral-health/analyse" element={<OhamodelPredict />} />
 
       {/* if want to use this route must make sure to update the rest of the buttons that
       lead here. (unupdated as of 12 jan 2025) */}
