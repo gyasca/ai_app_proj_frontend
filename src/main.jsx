@@ -95,24 +95,24 @@ let theme = createTheme({
       },
     },
     // Global styles for all components
-     // DataGrid specific styling
-     MuiDataGrid: {
+    // DataGrid specific styling
+    MuiDataGrid: {
       styleOverrides: {
         root: {
           borderRadius: "20px",
           border: "1px solid rgba(0, 0, 0, 0.12)",
           overflow: "hidden", // This ensures content doesn't overflow the rounded corners
-          '& .MuiDataGrid-columnsContainer, & .MuiDataGrid-cell': {
+          "& .MuiDataGrid-columnsContainer, & .MuiDataGrid-cell": {
             borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
           },
-          '& .MuiDataGrid-iconSeparator': {
-            display: 'none',
+          "& .MuiDataGrid-iconSeparator": {
+            display: "none",
           },
-          '& .MuiDataGrid-columnHeaders': {
+          "& .MuiDataGrid-columnHeaders": {
             borderBottom: "2px solid rgba(0, 0, 0, 0.12)",
           },
-          '& .MuiDataGrid-row:last-child .MuiDataGrid-cell': {
-            borderBottom: 'none',
+          "& .MuiDataGrid-row:last-child .MuiDataGrid-cell": {
+            borderBottom: "none",
           },
         },
       },
@@ -164,41 +164,23 @@ function MainApp() {
   const [activePage, setActivePage] = useState(null);
 
   useEffect(() => {
-    // const checkLoggedInUser = async () => {
-    //   try {
-    //     // Send a request to backend to check if the user is authenticated
-    //     const response = await http.get("/users/:id");
-    //     const user = response.data.data;
-
-    //     // Set the user context with the retrieved user data
-    //     setUser(user);
-    //   } catch (error) {
-    //     // If there's an error (e.g., token is invalid or user is not logged in), set the user context to null
-    //     setUser(null);
-    //   } finally {
-    //     // Set the loading state to false after checking the user's authentication status
-    //     setUserLoading(false);
-    //   }
-
     const checkLoggedInUser = async () => {
       try {
         const token = localStorage.getItem("accessToken");
         if (token) {
           const decoded = jwtDecode(token);
           const response = await http.get(`/user/${decoded.userId}`);
-          // set user context with retrieved user data
-          console.log("response from main, line 133:", response);
-          setUser(response.data.user);
-          console.log(user);
+          console.log("User data from API response:", response.data);
+          setUser(response.data);
+          // console.log(user);
         } else {
           console.log("Token not ready or not available");
         }
       } catch (error) {
-        // If there's an error (e.g., token is invalid or user is not logged in), set the user context to null
         setUser(null);
         console.error("Error fetching user details:", error);
       } finally {
-        setUserLoading(false); // Set loading to false regardless of success or failure
+        setUserLoading(false);
       }
     };
 
@@ -211,7 +193,7 @@ function MainApp() {
       if (token) {
         const decoded = jwtDecode(token);
         const response = await http.get(`/user/${decoded.userId}`);
-        setUser(response.data.user);
+        setUser(response.data);
       }
     } catch (error) {
       console.error("Error updating user details:", error);
@@ -231,7 +213,7 @@ function MainApp() {
           setIsAdminPage: setIsAdminPage,
           updateUser: updateUser,
           activePage: activePage,
-          setActivePage: setActivePage
+          setActivePage: setActivePage,
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column" }}>

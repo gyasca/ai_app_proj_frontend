@@ -19,8 +19,6 @@ import { validateUser } from "../functions/user";
 import { useSnackbar } from "notistack";
 import { GoogleLogin } from "@react-oauth/google";
 
-// import directus instance (made possilbe by npm i @directus/sdk)
-import directus from "../directus";
 
 function Login() {
   const { user, setUser } = useContext(UserContext);
@@ -51,7 +49,7 @@ function Login() {
         localStorage.setItem("accessToken", res.data.accessToken);
         setUser(res.data.user);
         // Navigate based on user role
-        if (res.data.user.role === "student") {
+        if (res.data.user.role != "admin") {
           navigate("/studentportal");
         } else {
           navigate("/admin/home");
@@ -125,8 +123,8 @@ function Login() {
                   console.log("User data to set into user:", userData);
                   setUser(userData);
                   // console.log("User data successfully set into user:", user);
-                  if (userData.role === "student") {
-                    navigate("/studentportal");
+                  if (userData.role != "admin") {
+                    navigate("/dashboard");
                   } else {
                     navigate("/admin/home");
                   }

@@ -124,38 +124,6 @@ export function Navbar() {
 
                 {user && (
                   <>
-                    {/* <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
-                      <Button
-                        startIcon={<HomeIcon />}
-                        LinkComponent={Link}
-                        variant="text"
-                        color="inherit"
-                        to="/skillmap"
-                      >
-                        Skill map
-                      </Button>
-                    </Stack>
-
-                    <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
-                      <Button
-                        startIcon={<HomeIcon />}
-                        LinkComponent={Link}
-                        variant="text"
-                        color="inherit"
-                        to="/skillmap2"
-                      >
-                        Skill map 2
-                      </Button>
-                    </Stack> */}
-
                     <Stack
                       spacing={2}
                       direction="row"

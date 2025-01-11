@@ -45,6 +45,7 @@ export function NavbarProfile() {
   }
 
   useEffect(() => {
+    console.log("NavbarProfile mounted: Calling updateUser");
     updateUser();
   }, []);
 

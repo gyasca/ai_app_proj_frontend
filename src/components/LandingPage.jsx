@@ -111,9 +111,9 @@ const LandingPage = () => {
                 color="white"
                 sx={{ color: "primary.main" }}
                 size="large"
-                to="/studentportal"
+                to="/dashboard"
               >
-                Student Portal
+                Enter Health Dashboard
               </Button>
             </>
           )}
