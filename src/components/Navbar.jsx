@@ -21,6 +21,7 @@ import HomeIcon from "@mui/icons-material/Home";
 import LoginIcon from "@mui/icons-material/Login";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import SchoolIcon from "@mui/icons-material/School";
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import LogoutIcon from "@mui/icons-material/Logout";
 import GradeIcon from "@mui/icons-material/Grade";
 import { Link } from "react-router-dom";
@@ -124,7 +125,7 @@ export function Navbar() {
 
                 {user && (
                   <>
-                    <Stack
+                    {/* <Stack
                       spacing={2}
                       direction="row"
                       sx={{ display: ["none", "none", "flex"] }}
@@ -138,7 +139,7 @@ export function Navbar() {
                       >
                         Competence Map
                       </Button>
-                    </Stack>
+                    </Stack> */}
 
                     {/* <Stack
                       spacing={2}
@@ -188,7 +189,7 @@ export function Navbar() {
                       </Button>
                     </Stack> */}
 
-                    <Stack
+                    {/* <Stack
                       spacing={2}
                       direction="row"
                       sx={{ display: ["none", "none", "flex"] }}
@@ -202,7 +203,7 @@ export function Navbar() {
                       >
                         Certificates
                       </Button>
-                    </Stack>
+                    </Stack> */}
 
                     <Stack
                       spacing={2}
@@ -210,13 +211,13 @@ export function Navbar() {
                       sx={{ display: ["none", "none", "flex"] }}
                     >
                       <Button
-                        startIcon={<SchoolIcon />}
+                        startIcon={<DashboardIcon />}
                         LinkComponent={Link}
                         variant="text"
                         color="inherit"
-                        to="/studentportal"
+                        to="/dashboard"
                       >
-                        Student portal
+                        Health Dashboard
                       </Button>
                     </Stack>
                   </>
