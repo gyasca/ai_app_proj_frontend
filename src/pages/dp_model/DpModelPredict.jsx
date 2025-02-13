@@ -99,8 +99,7 @@ const HealthPredictionForm = () => {
       'sysBP',
       'diaBP',
       'height',
-      'weight',
-      'heartRate'
+      'weight'
     ];
     
     const filledFields = requiredFields.filter(field => formData[field] !== '').length;
@@ -275,17 +274,7 @@ const HealthPredictionForm = () => {
                 helperText="Enter weight in kilograms"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Heart Rate (bpm)"
-                name="heartRate"
-                type="number"
-                value={formData.heartRate}
-                onChange={handleInputChange}
-                helperText="Beats per minute"
-              />
-            </Grid>
+            
           </Grid>
 
           {formData.BMI && (
