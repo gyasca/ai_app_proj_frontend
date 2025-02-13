@@ -15,6 +15,8 @@ import StudentCompetenceMapPage from "./StudentCompetenceMapPage";
 import ViewCertificates from "./ViewCertificates";
 import HealthDashboard from "./HealthDashboard";
 import OhamodelPredict from "./ohamodel/OhamodelPredict";
+import DpModelPredict from "./dp_model/DpModelPredict";
+
 // import Login from './Login'
 // import Register from './Register'
 // import Verify from './Verify'
@@ -54,6 +56,8 @@ function UserRoutes() {
       <Route path="/test1" element={<Test1 />} />
       <Route path="/dashboard" element={<HealthDashboard />} />
       <Route path="/oral-health/analyse" element={<OhamodelPredict />} />
+      <Route path="/disease-prediction/analyse" element={<DpModelPredict />} />
+
 
       {/* if want to use this route must make sure to update the rest of the buttons that
       lead here. (unupdated as of 12 jan 2025) */}
