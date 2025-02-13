@@ -211,7 +211,17 @@ function Register() {
   const removeImage = () => {
     formik.setFieldValue("profile_photo_file_path", null);
     setPreviewImage(null);
-  };
+
+    // Extract only the filename from the full URL
+    const fileNameToDelete = tempFilePath.split(import.meta.env.VITE_FILE_BASE_URL + "/uploads/")[1]; // Removes base URL
+
+    http.delete("/delete/" + fileNameToDelete).then((deleteRes) => {
+        console.log("Delete response:", deleteRes.data);
+    }).catch((error) => {
+        console.error("Error deleting file:", error);
+    });
+};
+
 
   const handleGoogleSuccess = (credentialResponse) => {
     const decoded = jwtDecode(credentialResponse.credential);

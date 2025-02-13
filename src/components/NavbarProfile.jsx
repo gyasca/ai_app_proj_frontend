@@ -59,8 +59,7 @@ export function NavbarProfile() {
       </Typography>
       &nbsp;
       <IconButton onClick={(e) => handlePopoverOpen(e)}>
-        <Avatar></Avatar>
-        {/* <ProfilePicture user={user} /> */}
+        <ProfilePicture user={user} />
       </IconButton>
       <Popover
         id={"userPopover"}
@@ -77,8 +76,7 @@ export function NavbarProfile() {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", margin: "1rem" }}>
-          {/* <ProfilePicture user={user} /> */}
-          <Avatar></Avatar>
+          <ProfilePicture user={user} />
           <Box marginLeft={"1rem"}>
             <Typography variant="subtitle1">{user.name}</Typography>
             <Typography variant="body2">{user.email}</Typography>

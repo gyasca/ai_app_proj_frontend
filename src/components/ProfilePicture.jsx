@@ -1,22 +1,36 @@
-import React from 'react'
-import { Avatar } from '@mui/material'
+import React, { useEffect, useState } from 'react';
+import { Avatar } from '@mui/material';
 import { stringAvatar } from "../functions/stringAvatar";
-import md5 from "md5";
+import http from '../http';  // Assuming http is set up to handle API requests
 
 function ProfilePicture(props) {
-    const { user } = props
-    const email_md5 = md5(user.email)
+    const { user } = props;
+    const [profilePhotoUrl, setProfilePhotoUrl] = useState("");
+
+    // Set the profile photo URL when user data is available
+    useEffect(() => {
+        if (user.profile_photo_file_path) {
+            // The profile photo URL is directly available, prepend the base URL if necessary
+            const fullUrl = `${user.profile_photo_file_path}`;
+            setProfilePhotoUrl(fullUrl);
+        }
+    }, [user]);  // This will run whenever the user changes
+
+    const name = user.username || "User";
     const s = {
-        ...stringAvatar(user.name).sx,
+        ...stringAvatar(name).sx,
         ...props.sx
-    }
+    };
+
     return (
         <>
-            {user.profile_picture_type === "gravatar" && <Avatar {...props} src={"https://www.gravatar.com/avatar/" + email_md5} />}
-            {user.profile_picture_type === "local" && <Avatar {...props} src={user.profile_picture + "?t=" + new Date().getTime()} />}
-            {!user.profile_picture_type && <Avatar  {...stringAvatar(user.name) } sx={s} />}
+            {profilePhotoUrl ? (
+                <Avatar {...props} src={profilePhotoUrl} />
+            ) : (
+                <Avatar {...stringAvatar(name)} sx={s} />
+            )}
         </>
-    )
+    );
 }
 
-export default ProfilePicture
+export default ProfilePicture;
