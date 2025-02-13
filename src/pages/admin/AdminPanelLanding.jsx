@@ -33,7 +33,7 @@ function AdminPanelLanding() {
         variant="h3"
         sx={{ marginBottom: "2rem", textAlign: "center" }}
       >
-        Staff Panel
+        Health Buddy Admin Panel
       </Typography>
       <StyledPaper elevation={0} fullWidth sx={{ mb: 3 }}>
         <Typography variant="h6" gutterBottom>

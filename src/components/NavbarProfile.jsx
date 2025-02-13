@@ -97,8 +97,8 @@ export function NavbarProfile() {
             </ListItemButton>
           </ListItem> */}
 
-          {user.role == "staff" && (
-            <ListItem key={"Staff Panel"} disablePadding>
+          {user.role == "admin" && (
+            <ListItem key={"Admin Panel"} disablePadding>
               <ListItemButton
                 component={Link}
                 to="/admin/home"
@@ -107,11 +107,11 @@ export function NavbarProfile() {
                 <ListItemIcon>
                   <AdminPanelSettingsIcon />
                 </ListItemIcon>
-                <ListItemText primary={"Staff Panel"} />
+                <ListItemText primary={"Admin Panel"} />
               </ListItemButton>
             </ListItem>
           )}
-          {user.role == "staff" && (
+          {user.role == "admin" && (
             <ListItem key={"Register students"} disablePadding>
               <ListItemButton
                 component={Link}

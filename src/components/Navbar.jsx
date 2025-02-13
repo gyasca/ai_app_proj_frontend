@@ -289,7 +289,7 @@ export function Navbar() {
                   padding: "0",
                 }}
               >
-                CM-APP
+                H-BUDDY
               </Button>
               <Divider
                 orientation="vertical"
@@ -301,7 +301,7 @@ export function Navbar() {
                 component="div"
                 sx={{ marginRight: "1rem" }}
               >
-                Staff Panel
+                Admin Panel
               </Typography>
               <Divider
                 orientation="vertical"
@@ -316,7 +316,7 @@ export function Navbar() {
                 color="inherit"
                 to="/"
               >
-                Exit Staff Panel
+                Exit Admin Panel
               </Button>
             </Box>
             {user && <NavbarProfile />}
@@ -399,7 +399,7 @@ export function Navbar() {
       >
         <List sx={{ width: "250px" }}>
           <ListItem key={"Home"}>
-            <Typography fontWeight={700}>Staff Navigation</Typography>
+            <Typography fontWeight={700}>Admin Navigation</Typography>
           </ListItem>
           <Divider sx={{ marginBottom: 1 }} />
           <AdminNavList />
