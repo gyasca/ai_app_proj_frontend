@@ -37,8 +37,8 @@ const HealthPredictionForm = () => {
     diaBP: '',
     height: '',
     weight: '',
-    BMI: '',
-    heartRate: '70'
+    BMI: ''
+    
   });
 
   const getBMIColor = (bmi) => {
@@ -150,23 +150,21 @@ const HealthPredictionForm = () => {
     setError(null);
 
     try {
-      const processedData = {
-        data: [{
-          gender: parseInt(formData.gender) || 0,
-          age: parseInt(formData.age) || 0,
-          currentSmoker: parseInt(formData.currentSmoker) || 0,
-          cigsPerDay: parseFloat(formData.cigsPerDay) || 0.0,
-          BPMeds: parseInt(formData.BPMeds) || 0,
-          prevalentStroke: parseInt(formData.prevalentStroke) || 0,
-          prevalentHyp: parseInt(formData.prevalentHyp) || 0,
-          diabetes: parseInt(formData.diabetes) || 0,
-          sysBP: parseFloat(formData.sysBP) || 0.0,
-          diaBP: parseFloat(formData.diaBP) || 0.0,
-          BMI: parseFloat(formData.BMI) || 0.0,
-          heartRate: parseFloat(formData.heartRate) || 70.0
-        }]
-      };
-
+        const processedData = {
+            data: [{
+                gender: parseInt(formData.gender) || 0,
+                age: parseInt(formData.age) || 0,
+                currentSmoker: parseInt(formData.currentSmoker) || 0,
+                cigsPerDay: parseFloat(formData.cigsPerDay) || 0.0,
+                BPMeds: parseInt(formData.BPMeds) || 0,
+                prevalentStroke: parseInt(formData.prevalentStroke) || 0,
+                prevalentHyp: parseInt(formData.prevalentHyp) || 0,
+                diabetes: parseInt(formData.diabetes) || 0,
+                sysBP: parseFloat(formData.sysBP) || 0.0,
+                diaBP: parseFloat(formData.diaBP) || 0.0,
+                BMI: parseFloat(formData.BMI) || 0.0
+            }]
+        };
       const response = await fetch('http://localhost:3001/dpmodel/predictData', {
         method: 'POST',
         headers: {
