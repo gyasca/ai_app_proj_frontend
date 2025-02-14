@@ -16,6 +16,7 @@ import "./index.css";
 // Import pages
 import AdminRoutes from "./pages/admin/AdminRoutes";
 import UserRoutes from "./pages/UserRoutes";
+import Identify from "./pages/foodmodel/Identify";
 
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import {
@@ -222,6 +223,7 @@ function MainApp() {
             <Routes location={location}>
               <Route path="*" element={<UserRoutes />} />
               <Route path="/admin/*" element={<AdminRoutes />} />
+              <Route path="/food" element={<Identify />} />
             </Routes>
           </Box>
           {/* <Footer /> */}
