@@ -1,200 +1,135 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  Typography,
+  Grid,
   TextField,
-  Button,
-  Select,
-  MenuItem,
   FormControl,
   InputLabel,
-  Grid,
-  Alert,
+  Select,
+  MenuItem,
+  Button,
+  Typography,
   Box,
-  CircularProgress,
-  Paper,
   Divider,
-  LinearProgress
-} from '@mui/material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+  LinearProgress,
+  Paper,
+  CircularProgress,
+  Alert,
+} from "@mui/material";
+import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, ResponsiveContainer } from "recharts";
 
-const HealthPredictionForm = () => {
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
-  const [progress, setProgress] = useState(0);
+function FormComponent() {
   const [formData, setFormData] = useState({
-    gender: '',
-    age: '',
-    currentSmoker: '',
-    cigsPerDay: '',
-    BPMeds: '',
-    prevalentStroke: '',
-    prevalentHyp: '',
-    diabetes: '',
-    sysBP: '',
-    diaBP: '',
-    height: '',
-    weight: '',
-    BMI: ''
-    
+    gender: "",
+    age: "",
+    height: "",
+    weight: "",
+    sysBP: "",
+    diaBP: "",
+    BPMeds: "",
+    diabetes: "",
+    prevalentStroke: "",
+    prevalentHyp: "",
+    currentSmoker: "",
+    cigsPerDay: "",
   });
 
-  const getBMIColor = (bmi) => {
-    if (!bmi) return '#f5f5f5';
-    if (bmi < 18.5) return '#bbdefb';
-    if (bmi < 25) return '#c8e6c9';
-    if (bmi < 30) return '#fff9c4';
-    return '#ffcdd2';
-  };
-
-  const getBMITextColor = (bmi) => {
-    if (!bmi) return '#616161';
-    if (bmi < 18.5) return '#1976d2';
-    if (bmi < 25) return '#2e7d32';
-    if (bmi < 30) return '#f57f17';
-    return '#d32f2f';
-  };
-
-  const getBPColor = (sysBP, diaBP) => {
-    if (!sysBP || !diaBP) return '#f5f5f5';
-    if (sysBP < 120 && diaBP < 80) return '#c8e6c9';
-    if (sysBP < 130 && diaBP < 80) return '#fff9c4';
-    if (sysBP < 140 && diaBP < 90) return '#ffcc80';
-    return '#ffcdd2';
-  };
-
-  const getBPCategory = (sysBP, diaBP) => {
-    if (!sysBP || !diaBP) return '';
-    if (sysBP < 120 && diaBP < 80) return 'Normal';
-    if (sysBP < 130 && diaBP < 80) return 'Elevated';
-    if (sysBP < 140 && diaBP < 90) return 'Stage 1 Hypertension';
-    return 'Stage 2 Hypertension';
-  };
+  const [progress, setProgress] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
-    if (formData.height && formData.weight) {
-      const heightInMeters = parseFloat(formData.height) / 100;
-      const weight = parseFloat(formData.weight);
-      if (heightInMeters > 0 && weight > 0) {
-        const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(2);
-        setFormData(prev => ({
-          ...prev,
-          BMI: bmi
-        }));
-      }
-    }
-  }, [formData.height, formData.weight]);
-
-  const calculateProgress = () => {
-    const requiredFields = [
-      'gender',
-      'age',
-      'currentSmoker',
-      'BPMeds',
-      'prevalentStroke',
-      'prevalentHyp',
-      'diabetes',
-      'sysBP',
-      'diaBP',
-      'height',
-      'weight'
-    ];
-    
-    const filledFields = requiredFields.filter(field => formData[field] !== '').length;
-    const newProgress = (filledFields / requiredFields.length) * 100;
-    setProgress(newProgress);
-  };
-
-  useEffect(() => {
-    calculateProgress();
+    const filledFields = Object.values(formData).filter((value) => value !== "").length;
+    const totalFields = Object.keys(formData).length;
+    setProgress((filledFields / totalFields) * 100);
   }, [formData]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
   };
 
-  const getBMIDescription = (bmi) => {
-    if (!bmi) return '';
-    if (bmi < 18.5) return 'Underweight';
-    if (bmi < 25) return 'Normal weight';
-    if (bmi < 30) return 'Overweight';
-    return 'Obese';
-  };
-
-  const getDiseaseRiskData = (riskScore) => {
-    return [
-      {
-        name: 'Heart Disease',
-        risk: riskScore * 100
-      },
-      {
-        name: 'Stroke',
-        risk: riskScore * 80
-      },
-      {
-        name: 'Hypertension',
-        risk: riskScore * 90
-      }
-    ];
-  };
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Form validation
+    if (
+      !formData.gender ||
+      !formData.age ||
+      !formData.height ||
+      !formData.weight ||
+      !formData.sysBP ||
+      !formData.diaBP ||
+      !formData.BPMeds ||
+      !formData.diabetes ||
+      !formData.prevalentStroke ||
+      !formData.prevalentHyp ||
+      !formData.currentSmoker ||
+      !formData.cigsPerDay
+    ) {
+      setError("Please fill in all fields.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
-    try {
-        const processedData = {
-            data: [{
-                gender: parseInt(formData.gender) || 0,
-                age: parseInt(formData.age) || 0,
-                currentSmoker: parseInt(formData.currentSmoker) || 0,
-                cigsPerDay: parseFloat(formData.cigsPerDay) || 0.0,
-                BPMeds: parseInt(formData.BPMeds) || 0,
-                prevalentStroke: parseInt(formData.prevalentStroke) || 0,
-                prevalentHyp: parseInt(formData.prevalentHyp) || 0,
-                diabetes: parseInt(formData.diabetes) || 0,
-                sysBP: parseFloat(formData.sysBP) || 0.0,
-                diaBP: parseFloat(formData.diaBP) || 0.0,
-                BMI: parseFloat(formData.BMI) || 0.0
-            }]
-        };
-      const response = await fetch('http://localhost:3001/dpmodel/predictData', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        mode: 'cors',
-        body: JSON.stringify(processedData)
+    // Simulate prediction result after form submission
+    setTimeout(() => {
+      setResult({
+        riskLevel: "Moderate",
+        riskScore: Math.random(),
+        confidence: Math.random(),
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Request failed: ${errorText}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.success) {
-        setResult(data.result);
-      } else {
-        throw new Error(data.error || 'Prediction failed');
-      }
-    } catch (err) {
-      console.error('Error:', err);
-      setError(err.message);
-    } finally {
       setLoading(false);
-    }
+    }, 2000);
+  };
+
+  const getDiseaseRiskData = (riskScore) => [
+    { name: "Heart Disease", risk: riskScore * 100 },
+    { name: "Stroke", risk: riskScore * 50 },
+    { name: "Diabetes", risk: riskScore * 70 },
+  ];
+
+  const getBMIColor = (BMI) => {
+    if (BMI < 18.5) return "#ffebee";
+    if (BMI < 25) return "#c8e6c9";
+    return "#ffcc80";
+  };
+
+  const getBMITextColor = (BMI) => (BMI < 18.5 || BMI >= 25 ? "black" : "white");
+
+  const getBMIDescription = (BMI) => {
+    if (BMI < 18.5) return "Underweight";
+    if (BMI < 25) return "Normal weight";
+    return "Overweight";
+  };
+
+  const getBPColor = (sysBP, diaBP) => {
+    if (sysBP < 120 && diaBP < 80) return "#c8e6c9";
+    if (sysBP < 140 && diaBP < 90) return "#ffebee";
+    return "#ffcc80";
+  };
+
+  const getBPCategory = (sysBP, diaBP) => {
+    if (sysBP < 120 && diaBP < 80) return "Normal";
+    if (sysBP < 140 && diaBP < 90) return "Elevated";
+    return "High";
+  };
+
+  // Calculating BMI
+  const calculateBMI = () => {
+    const heightInMeters = formData.height / 100; // Convert height to meters
+    return (formData.weight / (heightInMeters * heightInMeters)).toFixed(2); // BMI formula
   };
 
   return (
-    <Card sx={{ maxWidth: 900, margin: '20px auto', p: 2 }}>
+    <Card sx={{ maxWidth: 900, margin: "20px auto", p: 2 }}>
       <CardContent>
         <Typography variant="h4" gutterBottom align="center">
           Health Risk Prediction
@@ -203,7 +138,7 @@ const HealthPredictionForm = () => {
           Enter your health information to get a risk assessment
         </Typography>
 
-        <Box sx={{ width: '100%', mb: 4 }}>
+        <Box sx={{ width: "100%", mb: 4 }}>
           <Typography variant="body2" color="text.secondary" gutterBottom>
             Form Completion Progress
           </Typography>
@@ -215,75 +150,78 @@ const HealthPredictionForm = () => {
 
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 4 }}>
           {/* Personal Information Section */}
-          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-            Personal Information
-          </Typography>
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Gender</InputLabel>
-                <Select
-                  name="gender"
-                  value={formData.gender}
+          <Box sx={{ border: "1px solid #ccc", p: 2, mb: 4, borderRadius: 1 }}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+              Personal Information
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Gender</InputLabel>
+                  <Select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    label="Gender"
+                  >
+                    <MenuItem value="0">Female</MenuItem>
+                    <MenuItem value="1">Male</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Age"
+                  name="age"
+                  type="number"
+                  value={formData.age}
                   onChange={handleInputChange}
-                  label="Gender"
-                >
-                  <MenuItem value="0">Female</MenuItem>
-                  <MenuItem value="1">Male</MenuItem>
-                </Select>
-              </FormControl>
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Age"
-                name="age"
-                type="number"
-                value={formData.age}
-                onChange={handleInputChange}
-              />
-            </Grid>
-          </Grid>
+          </Box>
 
           <Divider sx={{ my: 3 }} />
 
           {/* Physical Measurements Section */}
-          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-            Physical Measurements
-          </Typography>
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Height (cm)"
-                name="height"
-                type="number"
-                value={formData.height}
-                onChange={handleInputChange}
-                helperText="Enter height in centimeters"
-              />
+          <Box sx={{ border: "1px solid #ccc", p: 2, mb: 4, borderRadius: 1 }}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+              Physical Measurements
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Height (cm)"
+                  name="height"
+                  type="number"
+                  value={formData.height}
+                  onChange={handleInputChange}
+                  helperText="Enter height in centimeters"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Weight (kg)"
+                  name="weight"
+                  type="number"
+                  value={formData.weight}
+                  onChange={handleInputChange}
+                  helperText="Enter weight in kilograms"
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Weight (kg)"
-                name="weight"
-                type="number"
-                value={formData.weight}
-                onChange={handleInputChange}
-                helperText="Enter weight in kilograms"
-              />
-            </Grid>
-            
-          </Grid>
+          </Box>
 
-          {formData.BMI && (
+          {formData.height && formData.weight && (
             <Paper
               sx={{
                 p: 2,
                 mb: 4,
-                backgroundColor: getBMIColor(formData.BMI),
-                color: getBMITextColor(formData.BMI)
+                backgroundColor: getBMIColor(calculateBMI()),
+                color: getBMITextColor(calculateBMI()),
               }}
             >
               <Grid container spacing={2} textAlign="center">
@@ -291,16 +229,14 @@ const HealthPredictionForm = () => {
                   <Typography variant="subtitle2" color="text.secondary">
                     Your BMI
                   </Typography>
-                  <Typography variant="h4">
-                    {formData.BMI}
-                  </Typography>
+                  <Typography variant="h4">{calculateBMI()}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="subtitle2" color="text.secondary">
                     Category
                   </Typography>
                   <Typography variant="h5">
-                    {getBMIDescription(formData.BMI)}
+                    {getBMIDescription(calculateBMI())}
                   </Typography>
                 </Grid>
               </Grid>
@@ -310,54 +246,56 @@ const HealthPredictionForm = () => {
           <Divider sx={{ my: 3 }} />
 
           {/* Blood Pressure Section */}
-          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-            Blood Pressure Information
-          </Typography>
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Systolic BP"
-                name="sysBP"
-                type="number"
-                value={formData.sysBP}
-                onChange={handleInputChange}
-                helperText="mmHg"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Diastolic BP"
-                name="diaBP"
-                type="number"
-                value={formData.diaBP}
-                onChange={handleInputChange}
-                helperText="mmHg"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Blood Pressure Medication</InputLabel>
-                <Select
-                  name="BPMeds"
-                  value={formData.BPMeds}
+          <Box sx={{ border: "1px solid #ccc", p: 2, mb: 4, borderRadius: 1 }}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+              Blood Pressure Information
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Systolic BP"
+                  name="sysBP"
+                  type="number"
+                  value={formData.sysBP}
                   onChange={handleInputChange}
-                  label="Blood Pressure Medication"
-                >
-                  <MenuItem value="0">No</MenuItem>
-                  <MenuItem value="1">Yes</MenuItem>
-                </Select>
-              </FormControl>
+                  helperText="mmHg"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Diastolic BP"
+                  name="diaBP"
+                  type="number"
+                  value={formData.diaBP}
+                  onChange={handleInputChange}
+                  helperText="mmHg"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Blood Pressure Medication</InputLabel>
+                  <Select
+                    name="BPMeds"
+                    value={formData.BPMeds}
+                    onChange={handleInputChange}
+                    label="Blood Pressure Medication"
+                  >
+                    <MenuItem value="0">No</MenuItem>
+                    <MenuItem value="1">Yes</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
             </Grid>
-          </Grid>
+          </Box>
 
           {formData.sysBP && formData.diaBP && (
             <Paper
               sx={{
                 p: 2,
                 mb: 4,
-                backgroundColor: getBPColor(formData.sysBP, formData.diaBP)
+                backgroundColor: getBPColor(formData.sysBP, formData.diaBP),
               }}
             >
               <Grid container spacing={2} textAlign="center">
@@ -384,106 +322,141 @@ const HealthPredictionForm = () => {
           <Divider sx={{ my: 3 }} />
 
           {/* Medical History Section */}
-          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-            Medical History
-          </Typography>
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Diabetes</InputLabel>
-                <Select
-                  name="diabetes"
-                  value={formData.diabetes}
-                  onChange={handleInputChange}
-                  label="Diabetes"
-                >
-                  <MenuItem value="0">No</MenuItem>
-                  <MenuItem value="1">Yes</MenuItem>
-                </Select>
-              </FormControl>
+          <Box sx={{ border: "1px solid #ccc", p: 2, mb: 4, borderRadius: 1 }}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+              Medical History
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Diabetes</InputLabel>
+                  <Select
+                    name="diabetes"
+                    value={formData.diabetes}
+                    onChange={handleInputChange}
+                    label="Diabetes"
+                  >
+                    <MenuItem value="0">No</MenuItem>
+                    <MenuItem value="1">Yes</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Prevalent Stroke</InputLabel>
+                  <Select
+                    name="prevalentStroke"
+                    value={formData.prevalentStroke}
+                    onChange={handleInputChange}
+                    label="Prevalent Stroke"
+                  >
+                    <MenuItem value="0">No</MenuItem>
+                    <MenuItem value="1">Yes</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Prevalent Hypertension</InputLabel>
+                  <Select
+                    name="prevalentHyp"
+                    value={formData.prevalentHyp}
+                    onChange={handleInputChange}
+                    label="Prevalent Hypertension"
+                  >
+                    <MenuItem value="0">No</MenuItem>
+                    <MenuItem value="1">Yes</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Previous Stroke</InputLabel>
-                <Select
-                  name="prevalentStroke"
-                  value={formData.prevalentStroke}
-                  onChange={handleInputChange}
-                  label="Previous Stroke"
-                >
-                  <MenuItem value="0">No</MenuItem>
-                  <MenuItem value="1">Yes</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Hypertension</InputLabel>
-                <Select
-                  name="prevalentHyp"
-                  value={formData.prevalentHyp}
-                  onChange={handleInputChange}
-                  label="Hypertension"
-                >
-                  <MenuItem value="0">No</MenuItem>
-                  <MenuItem value="1">Yes</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
+          </Box>
 
           <Divider sx={{ my: 3 }} />
 
-          {/* Smoking Section */}
-          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-            Smoking History
-          </Typography>
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Current Smoker</InputLabel>
-                <Select
-                  name="currentSmoker"
-                  value={formData.currentSmoker}
-                  onChange={handleInputChange}
-                  label="Current Smoker"
-                >
-                  <MenuItem value="0">No</MenuItem>
-                  <MenuItem value="1">Yes</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            {formData.currentSmoker === "1" && (
+          {/* Lifestyle Section */}
+          <Box sx={{ border: "1px solid #ccc", p: 2, mb: 4, borderRadius: 1 }}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+              Lifestyle Information
+            </Typography>
+            <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Cigarettes Per Day"
-                  name="cigsPerDay"
-                  type="number"
-                  value={formData.cigsPerDay}
-                  onChange={handleInputChange}
-                  helperText="Average number of cigarettes"
-                />
+                <FormControl fullWidth>
+                  <InputLabel>Current Smoker</InputLabel>
+                  <Select
+                    name="currentSmoker"
+                    value={formData.currentSmoker}
+                    onChange={handleInputChange}
+                    label="Current Smoker"
+                  >
+                    <MenuItem value="0">No</MenuItem>
+                    <MenuItem value="1">Yes</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
-            )}
-          </Grid>
 
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            disabled={loading}
-            sx={{ mt: 2, py: 1.5 }}
-          >
-            {loading ? (
-              <>
-                <CircularProgress size={24} sx={{ mr: 1 }} />
-                Processing
-              </>
-            ) : (
-              'Get Prediction'
-            )}
-          </Button>
+              {formData.currentSmoker === "1" && (
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Cigarettes per day"
+                    name="cigsPerDay"
+                    type="number"
+                    value={formData.cigsPerDay}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+              )}
+            </Grid>
+          </Box>
+          {/* Other Health Conditions Section */}
+          <Box sx={{ border: "1px solid #ccc", p: 2, mb: 4, borderRadius: 1 }}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+              Other Health Conditions
+            </Typography>
+            <Grid container spacing={3}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Diabetes</InputLabel>
+                  <Select
+                    name="diabetes"
+                    value={formData.diabetes}
+                    onChange={handleInputChange}
+                    label="Diabetes"
+                  >
+                    <MenuItem value="0">No</MenuItem>
+                    <MenuItem value="1">Yes</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  <InputLabel>Prevalent Stroke</InputLabel>
+                  <Select
+                    name="prevalentStroke"
+                    value={formData.prevalentStroke}
+                    onChange={handleInputChange}
+                    label="Prevalent Stroke"
+                  >
+                    <MenuItem value="0">No</MenuItem>
+                    <MenuItem value="1">Yes</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Box>
+
+
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <Button
+              type="submit"
+              variant="contained"
+              sx={{ width: "100%" }}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : "Submit"}
+            </Button>
+          </Box>
         </Box>
 
         {error && (
@@ -493,41 +466,31 @@ const HealthPredictionForm = () => {
         )}
 
         {result && (
-          <>
-            <Alert severity={result.riskLevel === 'Low' ? 'success' : 
-                            result.riskLevel === 'Moderate' ? 'warning' : 'error'} 
-                   sx={{ mt: 2 }}>
-              <Typography variant="h6" sx={{ mb: 1 }}>Prediction Results</Typography>
-              <Typography variant="body1">Risk Level: {result.riskLevel}</Typography>
-              <Typography variant="body1">Risk Score: {(result.riskScore * 100).toFixed(1)}%</Typography>
-              <Typography variant="body1">Confidence: {(result.confidence * 100).toFixed(1)}%</Typography>
-            </Alert>
-            
-            <Box sx={{ mt: 4, height: 300 }}>
-              <Typography variant="h6" gutterBottom>Disease Risk Analysis</Typography>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={getDiseaseRiskData(result.riskScore)}
-                  margin={{
-                    top: 20,
-                    right: 30,
-                    left: 20,
-                    bottom: 5,
-                  }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis label={{ value: 'Risk (%)', angle: -90, position: 'insideLeft' }} />
-                  <Tooltip />
-                  <Bar dataKey="risk" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Box>
-          </>
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h6" gutterBottom>
+              Risk Assessment Results
+            </Typography>
+            <Typography variant="body1">
+              Risk Level: {result.riskLevel}
+            </Typography>
+            <Typography variant="body1">
+              Confidence Score: {Math.round(result.confidence * 100)}%
+            </Typography>
+
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={getDiseaseRiskData(result.riskScore)}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="risk" fill="#8884d8" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
         )}
       </CardContent>
     </Card>
   );
-};
+}
 
-export default HealthPredictionForm;
+export default FormComponent;
