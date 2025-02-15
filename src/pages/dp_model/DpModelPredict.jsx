@@ -58,21 +58,21 @@ function FormComponent() {
     e.preventDefault();
 
     // Form validation
-    if (
-      !formData.gender ||
-      !formData.age ||
-      !formData.height ||
-      !formData.weight ||
-      !formData.sysBP ||
-      !formData.diaBP ||
-      !formData.BPMeds ||
-      !formData.diabetes ||
-      !formData.prevalentStroke ||
-      !formData.prevalentHyp ||
-      !formData.currentSmoker ||
-      !formData.cigsPerDay
-    ) {
-      setError("Please fill in all fields.");
+    const requiredFields = [
+      'gender', 'age', 'height', 'weight', 'sysBP', 'diaBP', 
+      'BPMeds', 'diabetes', 'prevalentStroke', 'prevalentHyp', 
+      'currentSmoker'
+    ];
+
+    // Add cigsPerDay only if currentSmoker is 'Yes'
+    if (formData.currentSmoker === "1") {
+      requiredFields.push('cigsPerDay');
+    }
+
+    const missingFields = requiredFields.filter(field => !formData[field]);
+
+    if (missingFields.length > 0) {
+      setError(`Please fill in all required fields. Missing: ${missingFields.join(', ')}`);
       return;
     }
 
@@ -409,42 +409,7 @@ function FormComponent() {
               )}
             </Grid>
           </Box>
-          {/* Other Health Conditions Section */}
-          <Box sx={{ border: "1px solid #ccc", p: 2, mb: 4, borderRadius: 1 }}>
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
-              Other Health Conditions
-            </Typography>
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Diabetes</InputLabel>
-                  <Select
-                    name="diabetes"
-                    value={formData.diabetes}
-                    onChange={handleInputChange}
-                    label="Diabetes"
-                  >
-                    <MenuItem value="0">No</MenuItem>
-                    <MenuItem value="1">Yes</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Prevalent Stroke</InputLabel>
-                  <Select
-                    name="prevalentStroke"
-                    value={formData.prevalentStroke}
-                    onChange={handleInputChange}
-                    label="Prevalent Stroke"
-                  >
-                    <MenuItem value="0">No</MenuItem>
-                    <MenuItem value="1">Yes</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-          </Box>
+          
 
 
           <Box sx={{ display: "flex", justifyContent: "center" }}>
