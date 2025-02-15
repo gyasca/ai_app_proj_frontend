@@ -16,6 +16,8 @@ import {
   Typography,
   Container,
   Paper,
+  Select,
+  MenuItem,
   Checkbox,
 } from "@mui/material";
 import { Edit, Delete, Visibility, Search, Add } from "@mui/icons-material";
@@ -27,34 +29,25 @@ function UserList() {
   const [users, setUsers] = useState([]);
   const [editUser, setEditUser] = useState(null);
   const [deleteUser, setDeleteUser] = useState(null);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [deleteSelectedDialogOpen, setDeleteSelectedDialogOpen] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUsers, setSelectedUsers] = useState([]);
-  const [deleteSelectedDialogOpen, setDeleteSelectedDialogOpen] =
-    useState(false);
-  const [courses, setCourses] = useState([]);
+  const [roleFilter, setRoleFilter] = useState(""); // New state for role filter
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchUsers();
-    fetchCourses();
   }, []);
 
   const fetchUsers = async () => {
     try {
       const response = await http.get("/user/all");
-      setUsers(response.data);
+      setUsers(Array.isArray(response.data.users) ? response.data.users : []);
+      console.log("user to set:", response.data.users);
     } catch (error) {
       console.error("Error fetching users:", error);
-    }
-  };
-
-  const fetchCourses = async () => {
-    try {
-      const response = await http.get("/course/all");
-      setCourses(response.data);
-    } catch (error) {
-      console.error("Error fetching courses:", error);
+      setUsers([]);
     }
   };
 
@@ -64,7 +57,7 @@ function UserList() {
 
   const handleEditComplete = () => {
     setEditUser(null);
-    fetchUsers(); // Refresh the user list after edit
+    fetchUsers();
   };
 
   const confirmDelete = async () => {
@@ -76,11 +69,12 @@ function UserList() {
       console.error("Error deleting user:", error);
     }
   };
+
   const handleSelectAllClick = () => {
-    if (selectedUsers.length === filteredUsers.length) {
+    if (selectedUsers.length === users.length) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(filteredUsers.map((user) => user.userId));
+      setSelectedUsers(users.map((user) => user.userId));
     }
   };
 
@@ -110,11 +104,27 @@ function UserList() {
     }
   };
 
+  const filteredUsers = users
+    .filter((user) =>
+      Object.values(user).some(
+        (value) =>
+          value &&
+          value.toString().toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    )
+    .filter((user) => (roleFilter ? user.role === roleFilter : true)); // Apply role filter
+
   const columns = [
     {
       field: "select",
-      headerName: "",
+      headerName: (
+        <Checkbox
+          checked={selectedUsers.length === users.length && users.length > 0}
+          onChange={handleSelectAllClick}
+        />
+      ),
       width: 50,
+      sortable: false,
       renderCell: (params) => (
         <Checkbox
           checked={selectedUsers.includes(params.row.userId)}
@@ -122,16 +132,17 @@ function UserList() {
         />
       ),
     },
+    { field: "userId", headerName: "ID", width: 90 },
+    { field: "username", headerName: "Username", flex: 1 },
+    { field: "email", headerName: "Email", flex: 1 },
+    { field: "role", headerName: "Role", width: 120 },
     {
       field: "actions",
       headerName: "Actions",
       width: 150,
       renderCell: (params) => (
         <>
-          <IconButton
-            onClick={() => handleView(params.row.userId)}
-            size="small"
-          >
+          <IconButton onClick={() => handleView(params.row.userId)} size="small">
             <Visibility />
           </IconButton>
           <IconButton onClick={() => handleEdit(params.row)} size="small">
@@ -143,30 +154,7 @@ function UserList() {
         </>
       ),
     },
-    { field: "userId", headerName: "User ID", width: 130 },
-    { field: "adminNumber", headerName: "Admin Number", width: 150 },
-    { field: "staffId", headerName: "Staff ID", width: 150 },
-    { field: "name", headerName: "Name", width: 150 },
-    { field: "email", headerName: "Email", width: 200 },
-    { field: "role", headerName: "Role", width: 120 },
-    { field: "course", headerName: "Course", width: 200 },
-    { field: "yearJoined", headerName: "Year Joined", width: 130 },
   ];
-
-  const filteredUsers = users.filter((user) => {
-    const matchesTab =
-      tabValue === 0 ||
-      (tabValue === 1 && user.role === "student") ||
-      (tabValue === 2 && user.role === "staff");
-
-    const matchesSearch = Object.values(user).some(
-      (value) =>
-        value &&
-        value.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    return matchesTab && matchesSearch;
-  });
 
   return (
     <Container>
@@ -174,18 +162,11 @@ function UserList() {
         User Management
       </Typography>
 
-      <Paper elevation={3} sx={{ mt: 5, mb: 5 }}>
-        <Tabs
-          value={tabValue}
-          onChange={(e, newValue) => setTabValue(newValue)}
-          variant="fullWidth"
-          sx={{ padding: 2, margin: 3 }}
-        >
+      {/* <Paper elevation={3} sx={{ mt: 5, mb: 5 }}>
+        <Tabs value={tabValue} onChange={(e, newValue) => setTabValue(newValue)} variant="fullWidth">
           <Tab label="All Users" />
-          <Tab label="Students" />
-          <Tab label="Staff" />
         </Tabs>
-      </Paper>
+      </Paper> */}
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <TextField
@@ -202,20 +183,28 @@ function UserList() {
           }}
         />
 
-        <Button
-          variant="contained"
-          startIcon={<Add />}
-          onClick={() => navigate("/admin/users/create")}
-        >
-          Create User
-        </Button>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            displayEmpty
+            sx={{ mr: 2 }}
+          >
+            <MenuItem value="">All Roles</MenuItem>
+            <MenuItem value="user">User</MenuItem>
+            <MenuItem value="specialist">Specialist</MenuItem>
+            <MenuItem value="admin">Admin</MenuItem>
+          </Select>
+
+          <Button variant="contained" startIcon={<Add />} onClick={() => navigate("/admin/users/create")}>
+            Create User
+          </Button>
+        </Box>
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2 }}>
         <Button variant="contained" onClick={handleSelectAllClick}>
-          {selectedUsers.length === filteredUsers.length
-            ? "Unselect All"
-            : "Select All"}
+          {selectedUsers.length === users.length ? "Unselect All" : "Select All"}
         </Button>
         <Button
           variant="contained"
@@ -227,74 +216,45 @@ function UserList() {
         </Button>
       </Box>
 
-      <Box
-        sx={{ flexGrow: 1, width: "100%", height: "53vh", overflow: "hidden" }}
-      >
+      <Box sx={{ flexGrow: 1, width: "100%", height: "53vh", overflow: "hidden" }}>
         <DataGrid
           rows={filteredUsers}
           columns={columns}
-          getRowId={(row) => row.userId}
+          getRowId={(row) => row.userId} // Ensures unique row IDs
           initialState={{
             pagination: {
-              paginationModel: {
-                pageSize: 10,
-              },
+              paginationModel: { pageSize: 10 },
             },
           }}
           rowsPerPageOptions={[5, 10, 20]}
           components={{ Toolbar: GridToolbar }}
-          disableSelectionOnClick
-          sx={{
-            "& .MuiDataGrid-main": { overflow: "auto" },
-            "& .MuiDataGrid-virtualScroller": { overflow: "auto" },
-          }}
         />
       </Box>
+
       <Dialog open={!!editUser} onClose={() => setEditUser(null)}>
         <DialogTitle>Edit User</DialogTitle>
-        {editUser && (
-          <EditUserForm
-            user={editUser}
-            courses={courses}
-            onSave={handleEditComplete}
-            onCancel={() => setEditUser(null)}
-          />
-        )}
+        {editUser && <EditUserForm user={editUser} onSave={handleEditComplete} onCancel={() => setEditUser(null)} />}
       </Dialog>
 
       <Dialog open={!!deleteUser} onClose={() => setDeleteUser(null)}>
         <DialogTitle>Delete User</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this user?
-          </DialogContentText>
+          <DialogContentText>Are you sure you want to delete this user?</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteUser(null)}>Cancel</Button>
-          <Button onClick={confirmDelete} color="error">
-            Delete
-          </Button>
+          <Button onClick={confirmDelete} color="error">Delete</Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog
-        open={deleteSelectedDialogOpen}
-        onClose={() => setDeleteSelectedDialogOpen(false)}
-      >
+      <Dialog open={deleteSelectedDialogOpen} onClose={() => setDeleteSelectedDialogOpen(false)}>
         <DialogTitle>Delete Selected Users</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete the selected users? This action
-            cannot be undone.
-          </DialogContentText>
+          <DialogContentText>Are you sure you want to delete the selected users?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteSelectedDialogOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={confirmDeleteSelected} color="error">
-            Delete
-          </Button>
+          <Button onClick={() => setDeleteSelectedDialogOpen(false)}>Cancel</Button>
+          <Button onClick={confirmDeleteSelected} color="error">Delete</Button>
         </DialogActions>
       </Dialog>
     </Container>

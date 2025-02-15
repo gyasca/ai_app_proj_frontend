@@ -5,16 +5,13 @@ import Home from "./Home";
 import Login from "./Login";
 import Map from "./Map";
 import StudentPortal from "./StudentPortal";
-import ViewSpecialSkillMap from "./ViewSpecialSkillMap";
-import ViewSkillMap from "./ViewSkillMap";
-import ViewSkillMap2 from "./ViewSkillMap2";
 import Dashboard from "./Dashboard";
 import Test1 from "./Test1";
 import Register from "./Register";
 import StudentCompetenceMapPage from "./StudentCompetenceMapPage";
-import ViewCertificates from "./ViewCertificates";
 import HealthDashboard from "./HealthDashboard";
 import OhamodelPredict from "./ohamodel/OhamodelPredict";
+import EditProfile from "./EditProfile";
 // import Login from './Login'
 // import Register from './Register'
 // import Verify from './Verify'
@@ -46,11 +43,9 @@ function UserRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/profile/edit" element={<EditProfile />} />
       <Route path="/map" element={<Map />} />
       <Route path="/studentportal" element={<StudentPortal />} />
-      <Route path="/skillmapspecial" element={<ViewSpecialSkillMap />} />
-      <Route path="/skillmap" element={<ViewSkillMap />} />
-      <Route path="/skillmap2" element={<ViewSkillMap2 />} />
       <Route path="/test1" element={<Test1 />} />
       <Route path="/dashboard" element={<HealthDashboard />} />
       <Route path="/oral-health/analyse" element={<OhamodelPredict />} />
@@ -59,11 +54,7 @@ function UserRoutes() {
       lead here. (unupdated as of 12 jan 2025) */}
       <Route path="/dashboard-old" element={<Dashboard />} />
 
-      {/* Final skill map page */}
-      <Route path="/competence-map" element={<StudentCompetenceMapPage />} />
 
-      {/* Final skill map page */}
-      <Route path="/certificates" element={<ViewCertificates />} />
 
       {/* <Route path="/register" element={<Register />} /> */}
       {/* <Route path="/login" element={!user ? <Login /> : <Navigate to={"/"} />} />
