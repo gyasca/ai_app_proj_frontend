@@ -12,6 +12,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Grid,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import { Delete, Visibility } from "@mui/icons-material";
 import http from "../../../http";
@@ -72,6 +75,9 @@ const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
   const [error, setError] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     console.log(user);
@@ -265,77 +271,83 @@ const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
         </DialogActions>
       </Dialog>
 
-      {/* Chart 1: Line graph showing condition count over scans */}
-      <Typography variant="h6" sx={{ mt: 4 }}>
-        Condition Count Over Scans
+      {/* Charts Section */}
+      <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
+        Analytics
       </Typography>
-      <LineChart
-        width={800}
-        height={300}
-        data={chartData}
-        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="scan" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="conditionCount" stroke="#8884d8" />
-      </LineChart>
+      <Grid container spacing={3}>
+        {/* Chart 1: Condition Count Over Scans */}
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6">Condition Count Over Scans</Typography>
+          <LineChart
+            width={isMobile ? 350 : 500}
+            height={300}
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="scan" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="conditionCount" stroke="#8884d8" />
+          </LineChart>
+        </Grid>
 
-      {/* Chart 2: Line graph showing daily average condition count */}
-      <Typography variant="h6" sx={{ mt: 4 }}>
-        Daily Average Condition Count
-      </Typography>
-      <LineChart
-        width={800}
-        height={300}
-        data={dailyAverageData}
-        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="averageConditions" stroke="#82ca9d" />
-      </LineChart>
+        {/* Chart 2: Daily Average Condition Count */}
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6">Daily Average Condition Count</Typography>
+          <LineChart
+            width={isMobile ? 350 : 500}
+            height={300}
+            data={dailyAverageData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="averageConditions" stroke="#82ca9d" />
+          </LineChart>
+        </Grid>
 
-      {/* Chart 3: Bar chart showing condition count by condition type */}
-      <Typography variant="h6" sx={{ mt: 4 }}>
-        Condition Count by Condition Type
-      </Typography>
-      <BarChart
-        width={800}
-        height={300}
-        data={conditionCountData}
-        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="condition" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Bar dataKey="count" fill="#8884d8" />
-      </BarChart>
+        {/* Chart 3: Condition Count by Condition Type */}
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6">Condition Count by Condition Type</Typography>
+          <BarChart
+            width={isMobile ? 350 : 500}
+            height={300}
+            data={conditionCountData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="condition" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="count" fill="#8884d8" />
+          </BarChart>
+        </Grid>
 
-      {/* Chart 4: Line graph showing condition count over time */}
-      <Typography variant="h6" sx={{ mt: 4 }}>
-        Condition Count Over Time
-      </Typography>
-      <LineChart
-        width={800}
-        height={300}
-        data={chartData}
-        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="conditionCount" stroke="#ff7300" />
-      </LineChart>
+        {/* Chart 4: Condition Count Over Time */}
+        <Grid item xs={12} md={6}>
+          <Typography variant="h6">Condition Count Over Time</Typography>
+          <LineChart
+            width={isMobile ? 350 : 500}
+            height={300}
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="date" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="conditionCount" stroke="#ff7300" />
+          </LineChart>
+        </Grid>
+      </Grid>
     </Paper>
   );
 };
