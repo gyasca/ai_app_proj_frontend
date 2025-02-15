@@ -215,6 +215,38 @@ export function Navbar() {
                         LinkComponent={Link}
                         variant="text"
                         color="inherit"
+                        to="/food"
+                      >
+                        Food Scan
+                      </Button>
+                    </Stack>
+
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ display: ["none", "none", "flex"] }}
+                    >
+                      <Button
+                        startIcon={<DashboardIcon />}
+                        LinkComponent={Link}
+                        variant="text"
+                        color="inherit"
+                        to="/food"
+                      >
+                        Chatbot
+                      </Button>
+                    </Stack>
+
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ display: ["none", "none", "flex"] }}
+                    >
+                      <Button
+                        startIcon={<DashboardIcon />}
+                        LinkComponent={Link}
+                        variant="text"
+                        color="inherit"
                         to="/dashboard"
                       >
                         Health Dashboard
