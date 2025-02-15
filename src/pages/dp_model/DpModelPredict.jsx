@@ -43,45 +43,166 @@ function FormComponent() {
   const [result, setResult] = useState(null);
   const resultRef = useRef(null);
 
+  // Modified drawPieChart function to only show risk percentage
+const drawPieChart = (ctx, centerX, centerY, radius, data, colors) => {
+  let startAngle = 0;
+  const total = data.reduce((sum, item) => sum + item.value, 0);
 
-    const generatePDFReport = async () => {
-      if (!resultRef.current) return;
-  
-      // Create a new jsPDF instance
-      const pdf = new jsPDF('p', 'mm', 'a4');
+  data.forEach((slice, i) => {
+    const sliceAngle = (2 * Math.PI * slice.value) / total;
+    
+    // Draw slice
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+    ctx.closePath();
+    ctx.fillStyle = colors[i];
+    ctx.fill();
+    
+    // Only draw label for the risk portion (first slice)
+    if (i === 0) {  // Risk is always the first slice in our data
+      const labelAngle = startAngle + sliceAngle / 2;
+      const labelX = centerX + (radius + 15) * Math.cos(labelAngle);
+      const labelY = centerY + (radius + 15) * Math.sin(labelAngle);
       
-      // Convert the result section to canvas
-      const canvas = await html2canvas(resultRef.current, {
-        scale: 2,
-        useCORS: true,
-      });
+      ctx.fillStyle = '#000';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${slice.value.toFixed(1)}%`, labelX, labelY);
+    }
+    
+    startAngle += sliceAngle;
+  });
+};
+
+const generatePDFReport = async () => {
+  if (!resultRef.current) return;
+
+  // Create a new jsPDF instance
+  const pdf = new jsPDF('p', 'mm', 'a4');
   
-      // Get canvas dimensions
-      const imgWidth = 210; // A4 width in mm
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-  
-      // Add title
-      pdf.setFontSize(18);
-      pdf.text('Health Risk Prediction Report', 10, 10);
-  
-      // Add current date
-      const currentDate = new Date().toLocaleDateString();
-      pdf.setFontSize(10);
-      pdf.text(`Generated on: ${currentDate}`, 10, 20);
-  
-      // Add canvas image to PDF
-      pdf.addImage(
-        canvas.toDataURL('image/png'), 
-        'PNG', 
-        0, 
-        30, 
-        imgWidth, 
-        imgHeight
-      );
-  
-      // Save the PDF
-      pdf.save('Health_Risk_Prediction_Report.pdf');
-    };
+  // Add title
+  pdf.setFontSize(16);
+  pdf.text('Health Risk Prediction Report', 10, 15);
+
+  // Add current date
+  const currentDate = new Date().toLocaleDateString();
+  pdf.setFontSize(10);
+  pdf.text(`Generated on: ${currentDate}`, 10, 22);
+
+  // Personal Information Section
+  pdf.setFontSize(12);
+  pdf.text('Personal Information', 10, 32);
+  pdf.setFontSize(10);
+  pdf.text(`Gender: ${formData.gender === '0' ? 'Female' : 'Male'}`, 10, 39);
+  pdf.text(`Age: ${formData.age} years`, 10, 45);
+
+  // Physical Measurements Section
+  pdf.setFontSize(12);
+  pdf.text('Physical Measurements', 10, 55);
+  pdf.setFontSize(10);
+  pdf.text(`Height: ${formData.height} cm`, 10, 62);
+  pdf.text(`Weight: ${formData.weight} kg`, 10, 68);
+
+  // BMI Analysis
+  const bmi = calculateBMI();
+  const bmiCategory = getBMIDescription(bmi);
+  pdf.text(`BMI: ${bmi}`, 10, 74);
+  pdf.text(`BMI Category: ${bmiCategory}`, 10, 80);
+
+  // Blood Pressure Section
+  pdf.setFontSize(12);
+  pdf.text('Blood Pressure Information', 10, 90);
+  pdf.setFontSize(10);
+  pdf.text(`Systolic BP: ${formData.sysBP} mmHg`, 10, 97);
+  pdf.text(`Diastolic BP: ${formData.diaBP} mmHg`, 10, 103);
+  pdf.text(`BP Category: ${getBPCategory(formData.sysBP, formData.diaBP)}`, 10, 109);
+  pdf.text(`BP Medication: ${formData.BPMeds === '0' ? 'No' : 'Yes'}`, 10, 115);
+
+  // Medical History Section
+  pdf.setFontSize(12);
+  pdf.text('Medical History', 10, 125);
+  pdf.setFontSize(10);
+  pdf.text(`Diabetes: ${formData.diabetes === '0' ? 'No' : 'Yes'}`, 10, 132);
+  pdf.text(`Prevalent Stroke: ${formData.prevalentStroke === '0' ? 'No' : 'Yes'}`, 10, 138);
+  pdf.text(`Prevalent Hypertension: ${formData.prevalentHyp === '0' ? 'No' : 'Yes'}`, 10, 144);
+
+  // Lifestyle Section
+  pdf.setFontSize(12);
+  pdf.text('Lifestyle Information', 10, 154);
+  pdf.setFontSize(10);
+  pdf.text(`Current Smoker: ${formData.currentSmoker === '0' ? 'No' : 'Yes'}`, 10, 161);
+  if (formData.currentSmoker === '1') {
+    pdf.text(`Cigarettes per day: ${formData.cigsPerDay}`, 10, 167);
+  }
+
+  // Risk Assessment Results
+  pdf.setFontSize(12);
+  pdf.text('Risk Assessment Results', 10, 177);
+  pdf.setFontSize(10);
+  pdf.text(`Overall Risk Level: ${result.riskLevel}`, 10, 184);
+  pdf.text(`Confidence Score: ${Math.round(result.confidence * 100)}%`, 10, 190);
+
+  // Create a canvas for the charts
+  const chartsCanvas = document.createElement('canvas');
+  chartsCanvas.width = 800;
+  chartsCanvas.height = 200;
+  const ctx = chartsCanvas.getContext('2d');
+
+  // Clear canvas with white background
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, chartsCanvas.width, chartsCanvas.height);
+
+  // Draw three pie charts
+  const charts = [
+    {
+      title: 'Heart Disease Risk',
+      data: [
+        { name: 'Risk', value: result.heartDiseaseRisk },
+        { name: 'No Risk', value: 100 - result.heartDiseaseRisk }
+      ],
+      colors: COLORS.heartDisease
+    },
+    {
+      title: 'Stroke Risk',
+      data: [
+        { name: 'Risk', value: result.strokeRisk },
+        { name: 'No Risk', value: 100 - result.strokeRisk }
+      ],
+      colors: COLORS.stroke
+    },
+    {
+      title: 'Diabetes Risk',
+      data: [
+        { name: 'Risk', value: result.diabetesRisk },
+        { name: 'No Risk', value: 100 - result.diabetesRisk }
+      ],
+      colors: COLORS.diabetes
+    }
+  ];
+
+  // Draw each chart
+  charts.forEach((chart, index) => {
+    const centerX = 150 + (index * 250);
+    const centerY = 100;
+    
+    // Draw title
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(chart.title, centerX, 30);
+    
+    // Draw pie chart
+    drawPieChart(ctx, centerX, centerY, 50, chart.data, chart.colors);
+  });
+
+  // Add the charts image to PDF
+  const chartImage = chartsCanvas.toDataURL('image/png');
+  pdf.addImage(chartImage, 'PNG', 10, 215, 190, 50);
+
+  // Save the PDF
+  pdf.save('Health_Risk_Report.pdf');
+};
   
 
   useEffect(() => {
