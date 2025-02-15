@@ -1,28 +1,29 @@
 import React, { useState } from "react";
-import { 
-  Dialog, 
-  DialogActions, 
-  DialogContent, 
-  DialogTitle, 
-  Button, 
-  Box, 
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Button,
+  Box,
   CircularProgress,
   Typography,
-  Alert
+  Alert,
 } from "@mui/material";
-import http from "../../http";
-import useUser from "../../context/useUser";
+import http from "../../../http";
+import useUser from "../../../context/useUser";
 
 const SaveResultsButton = ({
   imagePathWithHostURL,
-  drawBoundingBox,
+  drawBoundingBoxes,
   predictionResult,
+  onSave,
 }) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [processedImage, setProcessedImage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const { user } = useUser();
 
   const handleSaveClick = async () => {
@@ -35,7 +36,7 @@ const SaveResultsButton = ({
         // Create a new image element
         const img = new Image();
         img.crossOrigin = "anonymous"; // Enable CORS
-        
+
         // Create a promise to handle image loading
         const imageLoadPromise = new Promise((resolve, reject) => {
           img.onload = () => resolve(img);
@@ -44,20 +45,27 @@ const SaveResultsButton = ({
 
         // Load the image
         img.src = imagePathWithHostURL;
-        
+
         // Wait for image to load
         const loadedImg = await imageLoadPromise;
-        
+
         // Create canvas and draw image
         const canvas = document.createElement("canvas");
         canvas.width = loadedImg.width;
         canvas.height = loadedImg.height;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(loadedImg, 0, 0);
-        
+
         // Draw bounding boxes
         predictionResult.predictions.forEach((prediction, index) => {
-          const { x_center, y_center, width, height, class: classIndex, confidence } = prediction;
+          const {
+            x_center,
+            y_center,
+            width,
+            height,
+            class: classIndex,
+            confidence,
+          } = prediction;
           const x = x_center - width / 2;
           const y = y_center - height / 2;
 
@@ -69,7 +77,7 @@ const SaveResultsButton = ({
           // Draw label
           const confidenceText = (confidence * 100).toFixed(1);
           const labelText = `Box ${index + 1} - ${confidenceText}%`;
-          
+
           ctx.font = "bold 16px Roboto";
           ctx.fillStyle = "#ffffff";
           ctx.fillText(labelText, x, y > 20 ? y - 10 : y + height + 20);
@@ -80,22 +88,25 @@ const SaveResultsButton = ({
         setProcessedImage(dataUrl);
 
         // Convert to blob for upload
-        canvas.toBlob(async (blob) => {
-          const formData = new FormData();
-          formData.append("oralPhoto", blob, "processed_image.jpg");
+        canvas.toBlob(
+          async (blob) => {
+            const formData = new FormData();
+            formData.append("oralPhoto", blob, "processed_image.jpg");
 
-          try {
-            const response = await http.post("/upload/oral", formData, {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            });
-            setProcessedImage(response.data.filePathWithHostURL);
-          } catch (err) {
-            throw new Error("Failed to upload processed image");
-          }
-        }, "image/jpeg", 0.95);
-
+            try {
+              const response = await http.post("/upload/oral", formData, {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              });
+              setProcessedImage(response.data.filePathWithHostURL);
+            } catch (err) {
+              throw new Error("Failed to upload processed image");
+            }
+          },
+          "image/jpeg",
+          0.95
+        );
       } catch (err) {
         setError(err.message || "Failed to process image");
         console.error("Processing error:", err);
@@ -119,18 +130,21 @@ const SaveResultsButton = ({
         user_id: user.userId,
         original_image_path: imagePathWithHostURL,
         condition_count: predictionResult.predictions.length,
-        predictions: predictionResult.predictions.map(pred => ({
+        predictions: predictionResult.predictions.map((pred) => ({
           pred_class: pred.pred_class,
           confidence: pred.confidence,
           x_center: pred.x_center,
           y_center: pred.y_center,
           width: pred.width,
-          height: pred.height
-        }))
+          height: pred.height,
+        })),
       };
 
       console.log("History data to send:", historyData);
-      const response = await http.post("/history/oha/save-results", historyData);
+      const response = await http.post(
+        "/history/oha/save-results",
+        historyData
+      );
 
       if (response.data.message === "Results saved successfully") {
         setIsDialogOpen(false);
@@ -161,7 +175,7 @@ const SaveResultsButton = ({
         sx={{ borderRadius: 2, padding: "10px 20px" }}
       >
         {isProcessing ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <CircularProgress size={20} color="inherit" />
             <Typography>Processing...</Typography>
           </Box>
@@ -170,34 +184,36 @@ const SaveResultsButton = ({
         )}
       </Button>
 
-      <Dialog 
-        open={isDialogOpen} 
+      <Dialog
+        open={isDialogOpen}
         onClose={handleDialogClose}
         maxWidth="md"
         fullWidth
       >
         <DialogTitle>Preview & Save Results</DialogTitle>
-        
+
         <DialogContent>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
-          
+
           {processedImage && (
-            <Box sx={{ 
-              mt: 2,
-              borderRadius: 2,
-              overflow: 'hidden'
-            }}>
+            <Box
+              sx={{
+                mt: 2,
+                borderRadius: 2,
+                overflow: "hidden",
+              }}
+            >
               <img
                 src={processedImage}
                 alt="Processed Result"
                 style={{
                   maxWidth: "100%",
                   height: "auto",
-                  borderRadius: "8px"
+                  borderRadius: "8px",
                 }}
               />
             </Box>
@@ -214,7 +230,10 @@ const SaveResultsButton = ({
           </Button>
           <Button
             variant="contained"
-            onClick={handleSaveHistory}
+            onClick={async () => {
+              await handleSaveHistory();
+              onSave(predictionResult); // Pass the actual prediction result
+            }}
             disabled={!processedImage || isProcessing}
             color="success"
             sx={{ borderRadius: 2 }}

@@ -35,13 +35,19 @@ import {
   ExpandMore as ExpandMoreIcon,
   Circle as CircleIcon,
 } from "@mui/icons-material";
-import http from "../../http";
+import http from "../../../http";
 import SaveResultsButton from "./SaveResultsButton";
 
 const MAX_FILE_SIZE = 2048 * 2048; // 2MB
 const IMAGE_PREVIEW_HEIGHT = 400; // Consistent height for previews
 
-const ImageUploadForPrediction = ({ modelRoute, labelMapping }) => {
+const ImageUploadForPrediction = ({
+  modelRoute,
+  labelMapping,
+  onPredictionResults,
+  predictionResults,
+  updateOralHistory,
+}) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
   const [uploading, setUploading] = useState(false);
@@ -57,6 +63,7 @@ const ImageUploadForPrediction = ({ modelRoute, labelMapping }) => {
   const [cameraError, setCameraError] = useState(null);
   const [originalImagePathWithHostURL, setOriginalImagePathWithHostURL] =
     useState(null);
+  const [newHistory, setNewHistory] = useState([]);
 
   const groupPredictions = (predictions) => {
     return predictions.reduce((acc, prediction) => {
@@ -99,6 +106,7 @@ const ImageUploadForPrediction = ({ modelRoute, labelMapping }) => {
       });
 
       setPredictionResult(response.data);
+      setNewHistory(response.data);
       console.log("Prediction results:", response.data);
     } catch (err) {
       setError("Prediction failed. Please try again.");
@@ -441,6 +449,7 @@ const ImageUploadForPrediction = ({ modelRoute, labelMapping }) => {
                 imagePathWithHostURL={originalImagePathWithHostURL}
                 drawBoundingBox={drawBoundingBoxes}
                 predictionResult={predictionResult}
+                onSave={updateOralHistory}
               />
             )}
 

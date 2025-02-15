@@ -1,21 +1,55 @@
-import React from 'react';
-import ImageUploadForPrediction from '../../components/AI/ImageUploadForPrediction';
+import React, { useState, useEffect } from "react";
+import ImageUploadForPrediction from "../../components/AI/OralHealthAnalysis/ImageUploadForPrediction";
+import OralHistory from "../../components/AI/OralHealthAnalysis/OralHistory";
+
 
 function OhamodelPredict() {
-  // Define the label mappings here
+  const [oralHistory, setOralHistory] = useState([]);
+  
   const labelMapping = {
     0: "Caries",
     1: "Gingivitis",
     2: "Tooth Discoloration",
     3: "Ulcer",
-    // Add more class mappings as required for the model
   };
+
+  console.log("OhamodelPredict rendering with oralHistory:", oralHistory);
+
+  // Modified to directly accept the prediction results
+  const updateOralHistory = (newPrediction) => {
+    console.log("updateOralHistory called with prediction:", newPrediction);
+    
+    if (newPrediction && newPrediction.predictions) {
+      setOralHistory(prevHistory => {
+        const newHistory = [
+          ...prevHistory,
+          {
+            timestamp: new Date().toISOString(),
+            predictions: newPrediction.predictions
+          }
+        ];
+        console.log("Setting new oral history:", newHistory);
+        return newHistory;
+      });
+    }
+  };
+
+  // Debug useEffect to monitor state changes
+  useEffect(() => {
+    console.log("oralHistory state updated:", oralHistory);
+  }, [oralHistory]);
 
   return (
     <>
-      <ImageUploadForPrediction 
-        modelRoute={"/ohamodel/predict"} 
-        labelMapping={labelMapping}  // Pass the labelMapping prop here
+      <ImageUploadForPrediction
+        modelRoute={"/ohamodel/predict"}
+        labelMapping={labelMapping}
+        updateOralHistory={updateOralHistory}
+      />
+
+      <OralHistory
+        refreshTrigger={oralHistory}
+        labelMapping={labelMapping}
       />
     </>
   );
