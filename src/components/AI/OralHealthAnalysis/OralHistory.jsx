@@ -6,15 +6,20 @@ import {
   Typography,
   Paper,
   IconButton,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
+import { Delete, Visibility } from "@mui/icons-material";
 import http from "../../../http";
-import useUser from "../../../context/useUser"; // Import the useUser hook
-import { Visibility } from "@mui/icons-material";
 
 // Your drawBoundingBoxes logic
 const drawBoundingBoxes = (imageSrc, predictions, labelMapping) => {
   const img = new Image();
-  img.crossOrigin = "anonymous"; // This enables cross-origin requests if the server allows it
+  img.crossOrigin = "anonymous";
   img.src = imageSrc;
   return new Promise((resolve) => {
     img.onload = () => {
@@ -25,32 +30,25 @@ const drawBoundingBoxes = (imageSrc, predictions, labelMapping) => {
       ctx.drawImage(img, 0, 0);
 
       predictions.forEach((prediction, index) => {
-        const {
-          x_center,
-          y_center,
-          width,
-          height,
-          pred_class: classIndex,
-          confidence,
-        } = prediction;
+        const { x_center, y_center, width, height, pred_class, confidence } =
+          prediction;
         const x = x_center - width / 2;
         const y = y_center - height / 2;
 
-        // Draw the bounding box
         ctx.strokeStyle = "#39FF14";
         ctx.lineWidth = 3;
         ctx.strokeRect(x, y, width, height);
 
-        const label = labelMapping[classIndex] || "Unknown";
+        const label = labelMapping[pred_class] || "Unknown";
         const confidenceText = (confidence * 100).toFixed(1);
 
-        // Display label above or below the box
-        const labelText = `Box ${index + 1} - ${confidenceText}% ${label}`;
-
-        // Draw the label
         ctx.font = "bold 16px Poppins";
         ctx.fillStyle = "#ffffff";
-        ctx.fillText(labelText, x, y > 20 ? y - 10 : y + height + 20);
+        ctx.fillText(
+          `Box ${index + 1} - ${confidenceText}% ${label}`,
+          x,
+          y > 20 ? y - 10 : y + height + 20
+        );
       });
 
       resolve(canvas.toDataURL());
@@ -58,25 +56,17 @@ const drawBoundingBoxes = (imageSrc, predictions, labelMapping) => {
   });
 };
 
-const OralHistory = ({ labelMapping, refreshTrigger }) => {
+const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
   const [oralHistory, setOralHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [userIdForOralHistory, setUserIdForOralHistory] = useState(null);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const { user } = useUser(); // Get user data
-
-  // Check if oralhistory has been updated (updates to this variable activates refreshTrigger)
   useEffect(() => {
-    console.log("oralHistory has been updated and refresh has been triggered:", oralHistory);
-  }, [refreshTrigger]); // This will run whenever oralHistory changes
-
-  // Check if userId is available in localStorage or user context
-  useEffect(() => {
+    console.log(user);
     if (user) {
-      console.log(user?.userId);
-      setUserIdForOralHistory(user?.userId);
-      fetchOralHistory(user?.userId); // Fetch history directly using the stored userId
+      fetchOralHistory(user.userId);
     } else {
       setError("User not logged in");
       setIsLoading(false);
@@ -85,16 +75,13 @@ const OralHistory = ({ labelMapping, refreshTrigger }) => {
 
   const fetchOralHistory = async (userId) => {
     try {
-      const response = await http.get(`/history/oha/get-history`, {
-        params: {
-          user_id: userId, // Pass user_id as a query parameter
-        },
+      const response = await http.get("/history/oha/get-history", {
+        params: { user_id: userId },
       });
 
       const historyWithImages = await Promise.all(
         response.data.history.map(async (item) => {
           if (item.predictions) {
-            // Pass labelMapping to drawBoundingBoxes
             const imageWithBoundingBoxes = await drawBoundingBoxes(
               item.original_image_path,
               item.predictions,
@@ -110,7 +97,6 @@ const OralHistory = ({ labelMapping, refreshTrigger }) => {
       );
 
       setOralHistory(historyWithImages);
-      console.log("Oral history updated:", historyWithImages);
       setIsLoading(false);
     } catch (err) {
       setError("Failed to fetch oral health history");
@@ -118,26 +104,36 @@ const OralHistory = ({ labelMapping, refreshTrigger }) => {
     }
   };
 
+  const handleDelete = async (ids) => {
+    try {
+      await Promise.all(
+        ids.map((id) => http.delete(`/history/oha/delete-result`, {params: { id: id },}))
+      );
+      setOralHistory((prev) => prev.filter((item) => !ids.includes(item.id)));
+      setSelectedRows([]);
+    } catch (err) {
+      console.error("Failed to delete records", err);
+    } finally {
+      setDeleteDialogOpen(false);
+    }
+  };
+
   const columns = [
-    { field: "date", headerName: "Date", width: 150 },
-    { field: "condition_count", headerName: "Condition Count", width: 200 },
+    { field: "analysis_date", headerName: "Date", width: 200 },
+    { field: "condition_count", headerName: "Condition Count", width: 150 },
+    { field: "user_id", headerName: "User ID", width: 120 },
     {
       field: "image_preview",
       headerName: "Image Preview",
       width: 300,
       renderCell: (params) => {
         const { image_with_bounding_boxes, original_image_path } = params.row;
-
         return (
           <Box sx={{ position: "relative", width: "100%", height: "auto" }}>
             <img
               src={image_with_bounding_boxes || original_image_path}
               alt="Oral Health"
-              style={{
-                maxWidth: "50%",
-                height: "50%",
-                borderRadius: "8px",
-              }}
+              style={{ maxWidth: "50%", height: "50%", borderRadius: "8px" }}
             />
           </Box>
         );
@@ -149,8 +145,17 @@ const OralHistory = ({ labelMapping, refreshTrigger }) => {
       width: 150,
       renderCell: (params) => (
         <>
-          <IconButton onClick={() => true} size="small">
+          <IconButton onClick={() => console.log("View record")} size="small">
             <Visibility />
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              setSelectedRows([params.row.id]);
+              setDeleteDialogOpen(true);
+            }}
+            size="small"
+          >
+            <Delete />
           </IconButton>
         </>
       ),
@@ -179,11 +184,41 @@ const OralHistory = ({ labelMapping, refreshTrigger }) => {
             rowHeight={90}
             columns={columns}
             pageSize={5}
+            checkboxSelection
+            onRowSelectionModelChange={(ids) => setSelectedRows(ids)}
             rowsPerPageOptions={[5, 10, 20]}
             getRowId={(row) => row.id}
           />
         </Box>
       )}
+      {selectedRows.length > 0 && (
+        <Button
+          variant="contained"
+          color="error"
+          startIcon={<Delete />}
+          sx={{ mt: 2 }}
+          onClick={() => setDeleteDialogOpen(true)}
+        >
+          Delete Selected
+        </Button>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete {selectedRows.length} record(s)?
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button color="error" onClick={() => handleDelete(selectedRows)}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 };
