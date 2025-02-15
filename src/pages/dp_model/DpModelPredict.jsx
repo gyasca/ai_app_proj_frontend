@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import {
   Card,
   CardContent,
@@ -18,6 +18,8 @@ import {
   Alert,
 } from "@mui/material";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 function FormComponent() {
   const [formData, setFormData] = useState({
@@ -39,6 +41,48 @@ function FormComponent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
+  const resultRef = useRef(null);
+
+
+    const generatePDFReport = async () => {
+      if (!resultRef.current) return;
+  
+      // Create a new jsPDF instance
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // Convert the result section to canvas
+      const canvas = await html2canvas(resultRef.current, {
+        scale: 2,
+        useCORS: true,
+      });
+  
+      // Get canvas dimensions
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = canvas.height * imgWidth / canvas.width;
+  
+      // Add title
+      pdf.setFontSize(18);
+      pdf.text('Health Risk Prediction Report', 10, 10);
+  
+      // Add current date
+      const currentDate = new Date().toLocaleDateString();
+      pdf.setFontSize(10);
+      pdf.text(`Generated on: ${currentDate}`, 10, 20);
+  
+      // Add canvas image to PDF
+      pdf.addImage(
+        canvas.toDataURL('image/png'), 
+        'PNG', 
+        0, 
+        30, 
+        imgWidth, 
+        imgHeight
+      );
+  
+      // Save the PDF
+      pdf.save('Health_Risk_Prediction_Report.pdf');
+    };
+  
 
   useEffect(() => {
     const filledFields = Object.values(formData).filter((value) => value !== "").length;
@@ -525,8 +569,11 @@ function FormComponent() {
           </Alert>
         )}
 
-        {result && (
-          <Box sx={{ mt: 4 }}>
+{result && (
+          <Box 
+            ref={resultRef} 
+            sx={{ mt: 4 }}
+          >
             <Typography variant="h6" gutterBottom>
               Risk Assessment Results
             </Typography>
@@ -560,6 +607,17 @@ function FormComponent() {
                 />
               </Grid>
             </Grid>
+
+            {/* PDF Download Button */}
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={generatePDFReport}
+              >
+                Download Report as PDF
+              </Button>
+            </Box>
           </Box>
         )}
       </CardContent>
@@ -567,8 +625,8 @@ function FormComponent() {
   );
 }
 
+
 export default FormComponent;
-          
 
 
           
