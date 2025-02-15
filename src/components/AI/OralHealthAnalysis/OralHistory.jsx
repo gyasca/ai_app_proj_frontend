@@ -15,8 +15,18 @@ import {
 } from "@mui/material";
 import { Delete, Visibility } from "@mui/icons-material";
 import http from "../../../http";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  BarChart,
+  Bar,
+} from "recharts";
 
-// Your drawBoundingBoxes logic
 const drawBoundingBoxes = (imageSrc, predictions, labelMapping) => {
   const img = new Image();
   img.crossOrigin = "anonymous";
@@ -162,6 +172,41 @@ const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
     },
   ];
 
+  // Prepare data for the charts
+  const chartData = oralHistory.map((item, index) => ({
+    scan: index + 1,
+    conditionCount: item.condition_count,
+    date: item.analysis_date,
+  }));
+
+  const dailyData = oralHistory.reduce((acc, item) => {
+    const date = item.analysis_date.split("T")[0];
+    if (!acc[date]) {
+      acc[date] = { date, totalConditions: 0, count: 0 };
+    }
+    acc[date].totalConditions += item.condition_count;
+    acc[date].count += 1;
+    return acc;
+  }, {});
+
+  const dailyAverageData = Object.values(dailyData).map((day) => ({
+    date: day.date,
+    averageConditions: day.totalConditions / day.count,
+  }));
+
+  const conditionCountData = Object.entries(labelMapping).map(([key, label]) => {
+    const count = oralHistory.reduce((acc, item) => {
+      if (item.predictions) {
+        return (
+          acc +
+          item.predictions.filter((prediction) => prediction.pred_class === parseInt(key)).length
+        );
+      }
+      return acc;
+    }, 0);
+    return { condition: label, count };
+  });
+
   if (isLoading) {
     return <CircularProgress />;
   }
@@ -219,6 +264,78 @@ const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Chart 1: Line graph showing condition count over scans */}
+      <Typography variant="h6" sx={{ mt: 4 }}>
+        Condition Count Over Scans
+      </Typography>
+      <LineChart
+        width={800}
+        height={300}
+        data={chartData}
+        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="scan" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="conditionCount" stroke="#8884d8" />
+      </LineChart>
+
+      {/* Chart 2: Line graph showing daily average condition count */}
+      <Typography variant="h6" sx={{ mt: 4 }}>
+        Daily Average Condition Count
+      </Typography>
+      <LineChart
+        width={800}
+        height={300}
+        data={dailyAverageData}
+        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="averageConditions" stroke="#82ca9d" />
+      </LineChart>
+
+      {/* Chart 3: Bar chart showing condition count by condition type */}
+      <Typography variant="h6" sx={{ mt: 4 }}>
+        Condition Count by Condition Type
+      </Typography>
+      <BarChart
+        width={800}
+        height={300}
+        data={conditionCountData}
+        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="condition" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Bar dataKey="count" fill="#8884d8" />
+      </BarChart>
+
+      {/* Chart 4: Line graph showing condition count over time */}
+      <Typography variant="h6" sx={{ mt: 4 }}>
+        Condition Count Over Time
+      </Typography>
+      <LineChart
+        width={800}
+        height={300}
+        data={chartData}
+        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" />
+        <YAxis />
+        <Tooltip />
+        <Legend />
+        <Line type="monotone" dataKey="conditionCount" stroke="#ff7300" />
+      </LineChart>
     </Paper>
   );
 };
