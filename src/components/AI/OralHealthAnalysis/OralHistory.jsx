@@ -69,7 +69,7 @@ const drawBoundingBoxes = (imageSrc, predictions, labelMapping) => {
   });
 };
 
-const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
+const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
   const [oralHistory, setOralHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -80,9 +80,9 @@ const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
-    console.log(user);
-    if (user) {
-      fetchOralHistory(user.userId);
+    console.log(jwtUserId);
+    if (jwtUserId) {
+      fetchOralHistory(jwtUserId);
     } else {
       setError("User not logged in");
       setIsLoading(false);
@@ -94,6 +94,13 @@ const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
       const response = await http.get("/history/oha/get-history", {
         params: { user_id: userId },
       });
+
+      if (response.status === 200 && response.data.history.length === 0) {
+        console.warn("No history records found");
+        setOralHistory([]); // Ensure the UI still renders
+        setIsLoading(false);
+        return;
+      }
 
       const historyWithImages = await Promise.all(
         response.data.history.map(async (item) => {
@@ -113,17 +120,55 @@ const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
       );
 
       setOralHistory(historyWithImages);
-      setIsLoading(false);
     } catch (err) {
-      setError("Failed to fetch oral health history");
+      if (err.response && err.response.status === 404) {
+        console.warn("No records found for this user.");
+        setOralHistory([]); // Ensure an empty state is handled properly
+      } else {
+        setError("Failed to fetch oral health history");
+      }
+    } finally {
       setIsLoading(false);
     }
   };
 
+  //   const fetchOralHistory = async (userId) => {
+  //     try {
+  //       const response = await http.get("/history/oha/get-history", {
+  //         params: { user_id: userId },
+  //       });
+
+  //       const historyWithImages = await Promise.all(
+  //         response.data.history.map(async (item) => {
+  //           if (item.predictions) {
+  //             const imageWithBoundingBoxes = await drawBoundingBoxes(
+  //               item.original_image_path,
+  //               item.predictions,
+  //               labelMapping
+  //             );
+  //             return {
+  //               ...item,
+  //               image_with_bounding_boxes: imageWithBoundingBoxes,
+  //             };
+  //           }
+  //           return item;
+  //         })
+  //       );
+
+  //       setOralHistory(historyWithImages);
+  //       setIsLoading(false);
+  //     } catch (err) {
+  //       setError("Failed to fetch oral health history");
+  //       setIsLoading(false);
+  //     }
+  //   };
+
   const handleDelete = async (ids) => {
     try {
       await Promise.all(
-        ids.map((id) => http.delete(`/history/oha/delete-result`, {params: { id: id },}))
+        ids.map((id) =>
+          http.delete(`/history/oha/delete-result`, { params: { id: id } })
+        )
       );
       setOralHistory((prev) => prev.filter((item) => !ids.includes(item.id)));
       setSelectedRows([]);
@@ -200,18 +245,22 @@ const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
     averageConditions: day.totalConditions / day.count,
   }));
 
-  const conditionCountData = Object.entries(labelMapping).map(([key, label]) => {
-    const count = oralHistory.reduce((acc, item) => {
-      if (item.predictions) {
-        return (
-          acc +
-          item.predictions.filter((prediction) => prediction.pred_class === parseInt(key)).length
-        );
-      }
-      return acc;
-    }, 0);
-    return { condition: label, count };
-  });
+  const conditionCountData = Object.entries(labelMapping).map(
+    ([key, label]) => {
+      const count = oralHistory.reduce((acc, item) => {
+        if (item.predictions) {
+          return (
+            acc +
+            item.predictions.filter(
+              (prediction) => prediction.pred_class === parseInt(key)
+            ).length
+          );
+        }
+        return acc;
+      }, 0);
+      return { condition: label, count };
+    }
+  );
 
   if (isLoading) {
     return <CircularProgress />;
@@ -255,7 +304,10 @@ const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
       )}
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
         <DialogTitle>Confirm Delete</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -308,13 +360,19 @@ const OralHistory = ({ labelMapping, refreshTrigger, user }) => {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="averageConditions" stroke="#82ca9d" />
+            <Line
+              type="monotone"
+              dataKey="averageConditions"
+              stroke="#82ca9d"
+            />
           </LineChart>
         </Grid>
 
         {/* Chart 3: Condition Count by Condition Type */}
         <Grid item xs={12} md={6}>
-          <Typography variant="h6">Condition Count by Condition Type</Typography>
+          <Typography variant="h6">
+            Condition Count by Condition Type
+          </Typography>
           <BarChart
             width={isMobile ? 350 : 500}
             height={300}
