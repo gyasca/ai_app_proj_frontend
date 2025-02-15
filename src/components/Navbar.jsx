@@ -29,6 +29,7 @@ import { UserContext } from "../main";
 import { NavbarProfile } from "./NavbarProfile";
 import AdminNavList from "./AdminNavList";
 
+
 export function Navbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAdminDrawerOpen, setIsAdminDrawerOpen] = useState(false);
@@ -121,6 +122,7 @@ export function Navbar() {
                   >
                     Home
                   </Button>
+                  
                 </Stack>
 
                 {user && (

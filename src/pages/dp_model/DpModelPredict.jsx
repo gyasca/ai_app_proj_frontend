@@ -17,7 +17,7 @@ import {
   CircularProgress,
   Alert,
 } from "@mui/material";
-import { BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 function FormComponent() {
   const [formData, setFormData] = useState({
@@ -54,6 +54,13 @@ function FormComponent() {
     });
   };
 
+  // Color palette for pie charts
+  const COLORS = {
+    heartDisease: ['#FF6384', '#FF9999'],
+    stroke: ['#36A2EB', '#4BC0C0'],
+    diabetes: ['#FFCE56', '#FFD700']
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -79,22 +86,77 @@ function FormComponent() {
     setLoading(true);
     setError(null);
 
+    // More sophisticated risk assessment
+    const calculateRiskLevel = () => {
+      let riskScore = 0;
+
+      // Age risk
+      const age = parseInt(formData.age);
+      if (age > 50) riskScore += 0.3;
+      if (age > 60) riskScore += 0.2;
+
+      // BMI risk
+      const bmi = calculateBMI();
+      if (bmi < 18.5 || bmi > 25) riskScore += 0.2;
+
+      // Blood pressure risk
+      const sysBP = parseInt(formData.sysBP);
+      const diaBP = parseInt(formData.diaBP);
+      if (sysBP > 140 || diaBP > 90) riskScore += 0.3;
+
+      // Medical history risk
+      if (formData.diabetes === "1") riskScore += 0.3;
+      if (formData.prevalentStroke === "1") riskScore += 0.3;
+      if (formData.prevalentHyp === "1") riskScore += 0.2;
+
+      // Smoking risk
+      if (formData.currentSmoker === "1") {
+        const cigsPerDay = parseInt(formData.cigsPerDay);
+        if (cigsPerDay > 10) riskScore += 0.3;
+        if (cigsPerDay > 20) riskScore += 0.2;
+      }
+
+      // Determine individual disease risks
+      const heartDiseaseRisk = Math.min(100, riskScore * 70);
+      const strokeRisk = Math.min(100, riskScore * 50);
+      const diabetesRisk = Math.min(100, riskScore * 60);
+
+      // Determine risk level
+      let riskLevel = "Low";
+      if (riskScore > 0.5 && riskScore <= 0.7) riskLevel = "Moderate";
+      if (riskScore > 0.7) riskLevel = "High";
+
+      return { 
+        riskScore, 
+        riskLevel, 
+        heartDiseaseRisk, 
+        strokeRisk, 
+        diabetesRisk,
+        confidence: Math.min(1, riskScore + Math.random() * 0.3)
+      };
+    };
+
     // Simulate prediction result after form submission
     setTimeout(() => {
+      const riskResult = calculateRiskLevel();
+      
       setResult({
-        riskLevel: "Moderate",
-        riskScore: Math.random(),
-        confidence: Math.random(),
+        riskLevel: riskResult.riskLevel,
+        riskScore: riskResult.riskScore,
+        confidence: riskResult.confidence,
+        heartDiseaseRisk: riskResult.heartDiseaseRisk,
+        strokeRisk: riskResult.strokeRisk,
+        diabetesRisk: riskResult.diabetesRisk
       });
       setLoading(false);
     }, 2000);
   };
 
-  const getDiseaseRiskData = (riskScore) => [
-    { name: "Heart Disease", risk: riskScore * 100 },
-    { name: "Stroke", risk: riskScore * 50 },
-    { name: "Diabetes", risk: riskScore * 70 },
-  ];
+  // Helper functions for BMI and BP calculations
+  const calculateBMI = () => {
+    const heightInMeters = formData.height / 100; // Convert height to meters
+    return (formData.weight / (heightInMeters * heightInMeters)).toFixed(2);
+  };
 
   const getBMIColor = (BMI) => {
     if (BMI < 18.5) return "#ffebee";
@@ -122,10 +184,46 @@ function FormComponent() {
     return "High";
   };
 
-  // Calculating BMI
-  const calculateBMI = () => {
-    const heightInMeters = formData.height / 100; // Convert height to meters
-    return (formData.weight / (heightInMeters * heightInMeters)).toFixed(2); // BMI formula
+  // Custom Pie Chart Component
+  const DiseaseRiskPieChart = ({ disease, value, colors }) => {
+    const data = [
+      { name: 'Risk', value: value },
+      { name: 'No Risk', value: 100 - value }
+    ];
+
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          {disease} Risk
+        </Typography>
+        <ResponsiveContainer width="100%" height={200}>
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {data.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={colors[index % colors.length]} 
+                />
+              ))}
+            </Pie>
+            <Tooltip 
+              formatter={(value) => [`${value.toFixed(2)}%`, 'Risk']}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+        <Typography variant="body1">
+          {value.toFixed(2)}% Risk
+        </Typography>
+      </Box>
+    );
   };
 
   return (
@@ -409,9 +507,6 @@ function FormComponent() {
               )}
             </Grid>
           </Box>
-          
-
-
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             <Button
               type="submit"
@@ -436,21 +531,35 @@ function FormComponent() {
               Risk Assessment Results
             </Typography>
             <Typography variant="body1">
-              Risk Level: {result.riskLevel}
+              Overall Risk Level: {result.riskLevel}
             </Typography>
             <Typography variant="body1">
               Confidence Score: {Math.round(result.confidence * 100)}%
             </Typography>
 
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getDiseaseRiskData(result.riskScore)}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="risk" fill="#8884d8" />
-              </BarChart>
-            </ResponsiveContainer>
+            <Grid container spacing={2} sx={{ mt: 2 }}>
+              <Grid item xs={12} md={4}>
+                <DiseaseRiskPieChart 
+                  disease="Heart Disease" 
+                  value={result.heartDiseaseRisk} 
+                  colors={COLORS.heartDisease}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <DiseaseRiskPieChart 
+                  disease="Stroke" 
+                  value={result.strokeRisk} 
+                  colors={COLORS.stroke}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <DiseaseRiskPieChart 
+                  disease="Diabetes" 
+                  value={result.diabetesRisk} 
+                  colors={COLORS.diabetes}
+                />
+              </Grid>
+            </Grid>
           </Box>
         )}
       </CardContent>
@@ -459,3 +568,8 @@ function FormComponent() {
 }
 
 export default FormComponent;
+          
+
+
+          
+
