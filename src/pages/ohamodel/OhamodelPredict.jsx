@@ -6,7 +6,7 @@ import useUser from "../../context/useUser";
 
 function OhamodelPredict() {
   const [oralHistory, setOralHistory] = useState([]);
-  const { user } = useUser();
+  const { user, jwtUser } = useUser();
   
   const labelMapping = {
     0: "Caries",
@@ -52,7 +52,7 @@ function OhamodelPredict() {
       <OralHistory
         refreshTrigger={oralHistory}
         labelMapping={labelMapping}
-        user = {user}
+        jwtUserId = {jwtUser()}
       />
     </>
   );

@@ -1,6 +1,7 @@
 import { useContext, useEffect } from "react";
 import { UserContext } from "../main";
 import http from "../http";
+import { jwtDecode } from "jwt-decode";
 
 function useUser() {
   const { setUser, user, userLoading } = useContext(UserContext);
@@ -37,7 +38,25 @@ function useUser() {
     }
   };
 
-  return { user, refreshUser, userLoading };
+  const jwtUser = () => {
+    const token = localStorage.getItem("accessToken"); // Retrieve token from localStorage
+
+    if (!token) {
+      console.error("No access token found");
+      return null;
+    }
+
+    try {
+      const decoded = jwtDecode(token); // Decode the JWT token
+      console.log("decoded user at useUser.js", decoded);
+      return decoded.userId; // Assuming the token contains a 'user' field
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
+    }
+  };
+
+  return { user, refreshUser, userLoading, jwtUser };
 }
 
 export default useUser;
