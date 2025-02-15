@@ -137,6 +137,19 @@ export function NavbarProfile() {
               <ListItemText primary={"Support"} />
             </ListItemButton>
           </ListItem> */}
+           <ListItem key={"Edit Profile"} disablePadding>
+              <ListItemButton
+                component={Link}
+                to="/profile/edit"
+                onClick={() => setIsPopoverOpen(false)}
+              >
+                <ListItemIcon>
+                  <BadgeIcon />
+                </ListItemIcon>
+                <ListItemText primary={"Edit Profile"} />
+              </ListItemButton>
+            </ListItem>
+
           <ListItem key={"Logout"} disablePadding>
             <ListItemButton onClick={() => handleLogout()}>
               <ListItemIcon>

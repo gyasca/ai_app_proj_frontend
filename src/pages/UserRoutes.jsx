@@ -11,6 +11,7 @@ import Register from "./Register";
 import StudentCompetenceMapPage from "./StudentCompetenceMapPage";
 import HealthDashboard from "./HealthDashboard";
 import OhamodelPredict from "./ohamodel/OhamodelPredict";
+import EditProfile from "./EditProfile";
 // import Login from './Login'
 // import Register from './Register'
 // import Verify from './Verify'
@@ -42,6 +43,7 @@ function UserRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/profile/edit" element={<EditProfile />} />
       <Route path="/map" element={<Map />} />
       <Route path="/studentportal" element={<StudentPortal />} />
       <Route path="/test1" element={<Test1 />} />
