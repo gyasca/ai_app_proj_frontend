@@ -16,9 +16,13 @@ import "./index.css";
 // Import pages
 import AdminRoutes from "./pages/admin/AdminRoutes";
 import UserRoutes from "./pages/UserRoutes";
+
 import Identify from "./pages/foodmodel/Identify";
 import AddDI from "./pages/foodmodel/AddDI";
 import Scans from "./pages/foodmodel/Scans";
+import FoodMetrics from "./pages/foodmodel/FoodMetrics";
+
+import ChatBot from "./pages/chatbot/ChatBot";
 
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import {
@@ -225,9 +229,13 @@ function MainApp() {
             <Routes location={location}>
               <Route path="*" element={<UserRoutes />} />
               <Route path="/admin/*" element={<AdminRoutes />} />
+
               <Route path="/food" element={<Identify />} />
               <Route path="/food/add" element={<AddDI />} />
               <Route path="/food/scans" element={<Scans />} />
+              <Route path="/food/metrics" element={<FoodMetrics />} />
+
+              <Route path="/chatbot" element={<ChatBot />} />
             </Routes>
           </Box>
           {/* <Footer /> */}
