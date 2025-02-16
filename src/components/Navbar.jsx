@@ -29,6 +29,7 @@ import { UserContext } from "../main";
 import { NavbarProfile } from "./NavbarProfile";
 import AdminNavList from "./AdminNavList";
 
+
 export function Navbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAdminDrawerOpen, setIsAdminDrawerOpen] = useState(false);
@@ -121,6 +122,7 @@ export function Navbar() {
                   >
                     Home
                   </Button>
+                  
                 </Stack>
 
                 {user && (
@@ -215,6 +217,38 @@ export function Navbar() {
                         LinkComponent={Link}
                         variant="text"
                         color="inherit"
+                        to="/food"
+                      >
+                        Food Scan
+                      </Button>
+                    </Stack>
+
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ display: ["none", "none", "flex"] }}
+                    >
+                      <Button
+                        startIcon={<DashboardIcon />}
+                        LinkComponent={Link}
+                        variant="text"
+                        color="inherit"
+                        to="/food"
+                      >
+                        Chatbot
+                      </Button>
+                    </Stack>
+
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ display: ["none", "none", "flex"] }}
+                    >
+                      <Button
+                        startIcon={<DashboardIcon />}
+                        LinkComponent={Link}
+                        variant="text"
+                        color="inherit"
                         to="/dashboard"
                       >
                         Health Dashboard
@@ -289,7 +323,7 @@ export function Navbar() {
                   padding: "0",
                 }}
               >
-                CM-APP
+                H-BUDDY
               </Button>
               <Divider
                 orientation="vertical"
@@ -301,7 +335,7 @@ export function Navbar() {
                 component="div"
                 sx={{ marginRight: "1rem" }}
               >
-                Staff Panel
+                Admin Panel
               </Typography>
               <Divider
                 orientation="vertical"
@@ -316,7 +350,7 @@ export function Navbar() {
                 color="inherit"
                 to="/"
               >
-                Exit Staff Panel
+                Exit Admin Panel
               </Button>
             </Box>
             {user && <NavbarProfile />}
@@ -331,7 +365,7 @@ export function Navbar() {
       >
         <List sx={{ width: "250px" }}>
           <ListItem key={"Home"}>
-            <Typography fontWeight={700}>CM App</Typography>
+            <Typography fontWeight={700}>Health Buddy</Typography>
           </ListItem>
           <Divider sx={{ marginBottom: 1 }} />
           <ListItem key={"Home"} disablePadding>
@@ -349,33 +383,20 @@ export function Navbar() {
 
           {user && (
             <>
-              <ListItem key={"Competence Map"} disablePadding>
+              <ListItem key={"Health Dashboard"} disablePadding>
                 <ListItemButton
                   component={Link}
-                  to="/competence-map"
+                  to="/dashboard"
                   onClick={() => setIsDrawerOpen(false)}
                 >
                   <ListItemIcon>
                     <AccountTreeIcon />
                   </ListItemIcon>
-                  <ListItemText primary={"Competence Map"} />
+                  <ListItemText primary={"Health Dashboard"} />
                 </ListItemButton>
               </ListItem>
 
-              <ListItem key={"Certificates"} disablePadding>
-                <ListItemButton
-                  component={Link}
-                  to="/certificates"
-                  onClick={() => setIsDrawerOpen(false)}
-                >
-                  <ListItemIcon>
-                    <GradeIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={"Certificates"} />
-                </ListItemButton>
-              </ListItem>
-
-              <ListItem key={"StudentPortal"} disablePadding>
+              <ListItem key={"Portal"} disablePadding>
                 <ListItemButton
                   component={Link}
                   to="/studentportal"
@@ -384,7 +405,7 @@ export function Navbar() {
                   <ListItemIcon>
                     <SchoolIcon />
                   </ListItemIcon>
-                  <ListItemText primary={"Student Portal"} />
+                  <ListItemText primary={"Portal"} />
                 </ListItemButton>
               </ListItem>
             </>
@@ -399,7 +420,7 @@ export function Navbar() {
       >
         <List sx={{ width: "250px" }}>
           <ListItem key={"Home"}>
-            <Typography fontWeight={700}>Staff Navigation</Typography>
+            <Typography fontWeight={700}>Admin Navigation</Typography>
           </ListItem>
           <Divider sx={{ marginBottom: 1 }} />
           <AdminNavList />

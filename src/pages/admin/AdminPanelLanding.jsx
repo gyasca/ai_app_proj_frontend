@@ -33,7 +33,7 @@ function AdminPanelLanding() {
         variant="h3"
         sx={{ marginBottom: "2rem", textAlign: "center" }}
       >
-        Staff Panel
+        Health Buddy Admin Panel
       </Typography>
       <StyledPaper elevation={0} fullWidth sx={{ mb: 3 }}>
         <Typography variant="h6" gutterBottom>
@@ -62,13 +62,13 @@ function AdminPanelLanding() {
         <Grid item xs={12} sm={6} md={4}>
           <Button
             component={Link}
-            to="/admin/modules"
+            to="/admin/bookings"
             variant="contained"
             color="primary"
             fullWidth
             sx={{ height: "100px", fontSize: "1.2rem" }}
           >
-            Manage Modules
+            Manage Bookings
           </Button>
         </Grid>
         {/* <Grid item xs={12} sm={6} md={4}>
@@ -86,13 +86,13 @@ function AdminPanelLanding() {
         <Grid item xs={12} sm={6} md={4}>
           <Button
             component={Link}
-            to="/admin/courses"
+            to="/admin/forum"
             variant="contained"
             color="primary"
             fullWidth
             sx={{ height: "100px", fontSize: "1.2rem" }}
           >
-            Manage Courses
+            Manage Forum
           </Button>
         </Grid>
         {/* <Grid item xs={12} sm={6} md={4}>
