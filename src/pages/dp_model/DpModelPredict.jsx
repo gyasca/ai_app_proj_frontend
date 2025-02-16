@@ -268,7 +268,7 @@ const generatePDFReport = async () => {
       console.log('Request Data:', JSON.stringify(requestData, null, 2));
   
       // New POST request implementation
-      const response = await http.post('http://127.0.0.1:3001/dpmodel/predictData', requestData);
+      const response = await http.post('/dpmodel/predictData', requestData);
       console.log('Response:', response.data);
   
       if (response.data.success) {
