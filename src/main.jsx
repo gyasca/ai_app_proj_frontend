@@ -18,6 +18,7 @@ import AdminRoutes from "./pages/admin/AdminRoutes";
 import UserRoutes from "./pages/UserRoutes";
 import Identify from "./pages/foodmodel/Identify";
 import AddDI from "./pages/foodmodel/AddDI";
+import Scans from "./pages/foodmodel/Scans";
 
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import {
@@ -226,6 +227,7 @@ function MainApp() {
               <Route path="/admin/*" element={<AdminRoutes />} />
               <Route path="/food" element={<Identify />} />
               <Route path="/food/add" element={<AddDI />} />
+              <Route path="/food/scans" element={<Scans />} />
             </Routes>
           </Box>
           {/* <Footer /> */}

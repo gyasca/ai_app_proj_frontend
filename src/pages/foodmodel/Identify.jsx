@@ -1,12 +1,15 @@
-import { useState } from 'react';
-import axios from 'axios';
-import IngredientCard from './IngredientCard';
+import { useState } from "react";
+import axios from "axios";
+import IngredientCard from "./IngredientCard";
+import { Tab, Tabs, Box } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
 
 export default function Food() {
   const [image, setImage] = useState(null);
   const [foodData, setFoodData] = useState(null);
   const [ingredients, setIngredients] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [tabIndex, setTabIndex] = useState(0);
 
   const handleFileChange = (e) => {
     setImage(e.target.files[0]);
@@ -45,7 +48,6 @@ export default function Food() {
     }
   };
 
-
   const incrementIngredient = (index) => {
     setIngredients((prev) => {
       const updated = [...prev];
@@ -65,6 +67,49 @@ export default function Food() {
   const removeIngredient = (index) => {
     setIngredients((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const handleSave = async () => {
+    if (!foodData || !ingredients.length) {
+      alert("No food data or ingredients to save!");
+      return;
+    }
+  
+    setLoading(true); // Show loading state while saving
+    const foodScanData = {
+      food_name: foodData.name,
+      food_image: foodData.image,
+      ingredients: JSON.stringify(ingredients), // Backend expects ingredients as JSON string
+      user_id: 1, // Replace with the actual logged-in user ID
+    };
+  
+    try {
+      console.log("[INFO] Sending data to the backend:", foodScanData);
+  
+      const response = await axios.post(
+        "http://localhost:3001/foodmodel/api/foodscan",
+        foodScanData,
+        { headers: { "Content-Type": "application/json" } }
+      );
+  
+      console.log("[INFO] Response from backend:", response.data);
+      alert("Ingredients saved successfully!");
+    } catch (error) {
+      console.error("[ERROR] Error saving FoodScan:", error.response?.data || error.message);
+      alert("An error occurred while saving the ingredients.");
+    } finally {
+      setLoading(false); // Hide loading state
+    }
+  };
+
+  const columns = [
+    { field: "name", headerName: "Name", flex: 1 },
+    { field: "quantity", headerName: "Quantity", flex: 1 },
+    { field: "unit", headerName: "Unit", flex: 1 },
+    { field: "calories", headerName: "Calories", flex: 1 },
+    { field: "protein", headerName: "Protein", flex: 1 },
+    { field: "carb", headerName: "Carbs", flex: 1 },
+    { field: "fat", headerName: "Fats", flex: 1 },
+  ];
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center py-6">
@@ -117,21 +162,44 @@ export default function Food() {
             </div>
 
             {/* Right half: Ingredients list */}
-            <div className="w-1/2 pl-4 flex flex-col ">
+            <div className="w-1/2 pl-4 flex flex-col">
               <h2 className="text-xl font-semibold text-center mb-4">
                 Ingredients
               </h2>
-              <div className="overflow-y-auto border rounded-md p-4 border-gray-300">
-                {ingredients.map((ingredient, index) => (
-                  <IngredientCard
-                    key={index}
-                    ingredient={ingredient}
-                    onIncrement={() => incrementIngredient(index)}
-                    onDecrement={() => decrementIngredient(index)}
-                    onRemove={() => removeIngredient(index)}
-                  />
-                ))}
-              </div>
+              <Box>
+                <Tabs value={tabIndex} onChange={(_, newValue) => setTabIndex(newValue)}>
+                  <Tab label="Cards" />
+                  <Tab label="Table" />
+                </Tabs>
+                <Box className="mt-4">
+                  {tabIndex === 0 && (
+                    <div className="overflow-y-auto border rounded-md p-4 border-gray-300">
+                      {ingredients.map((ingredient, index) => (
+                        <IngredientCard
+                          key={index}
+                          ingredient={ingredient}
+                          onIncrement={() => incrementIngredient(index)}
+                          onDecrement={() => decrementIngredient(index)}
+                          onRemove={() => removeIngredient(index)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {tabIndex === 1 && (
+                    <div style={{ height: 400, width: "100%" }}>
+                      <DataGrid
+                        rows={ingredients.map((ingredient, index) => ({
+                          id: index,
+                          ...ingredient,
+                        }))}
+                        columns={columns}
+                        pageSize={5}
+                      />
+                    </div>
+                  )}
+                </Box>
+              </Box>
+
               <div className="mt-4 flex justify-between">
                 <button
                   onClick={() => {
@@ -143,10 +211,12 @@ export default function Food() {
                   Back
                 </button>
                 <button
-                  onClick={() => alert("Ingredients saved!")}
-                  className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+                  onClick={handleSave}
+                  disabled={loading}
+                  className={`px-4 py-2 text-white rounded-md ${loading ? "bg-gray-400 cursor-not-allowed" : "bg-black hover:bg-gray-800"
+                    }`}
                 >
-                  Save
+                  {loading ? "Saving..." : "Save"}
                 </button>
               </div>
             </div>
