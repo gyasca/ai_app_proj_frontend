@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import ImageUploadForPrediction from "../../components/AI/OralHealthAnalysis/ImageUploadForPrediction";
+import ImageUploadForPredictionGregory from "../../components/AI/OralHealthAnalysis/ImageUploadForPredictionGregory";
 import OralHistory from "../../components/AI/OralHealthAnalysis/OralHistory";
 import useUser from "../../context/useUser";
 import Chatbot from "../../components/AI/OralHealthAnalysis/Chatbot";
@@ -43,7 +43,7 @@ function OhamodelPredict() {
 
   return (
     <>
-      <ImageUploadForPrediction
+      <ImageUploadForPredictionGregory
         modelRoute={"/ohamodel/predict"}
         labelMapping={labelMapping}
         updateOralHistory={updateOralHistory}
