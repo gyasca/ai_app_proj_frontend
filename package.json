@@ -1,5 +1,5 @@
 {
-  "name": "competence_map_app",
+  "name": "heathbuddy_by_gregory_charmain_azrel_ryan",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -28,6 +28,7 @@
     "formik": "^2.4.5",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.470.0",
+    "marked": "^15.0.7",
     "md5": "^2.3.0",
     "mui": "file:../../../../../../../../../../../components/ui/card",
     "notistack": "^3.0.1",

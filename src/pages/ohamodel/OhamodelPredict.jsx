@@ -2,12 +2,12 @@ import React, { useState, useEffect } from "react";
 import ImageUploadForPrediction from "../../components/AI/OralHealthAnalysis/ImageUploadForPrediction";
 import OralHistory from "../../components/AI/OralHealthAnalysis/OralHistory";
 import useUser from "../../context/useUser";
-
+import Chatbot from "../../components/AI/OralHealthAnalysis/Chatbot";
 
 function OhamodelPredict() {
   const [oralHistory, setOralHistory] = useState([]);
   const { user, jwtUser } = useUser();
-  
+
   const labelMapping = {
     0: "Caries",
     1: "Gingivitis",
@@ -20,15 +20,15 @@ function OhamodelPredict() {
   // Modified to directly accept the prediction results
   const updateOralHistory = (newPrediction) => {
     console.log("updateOralHistory called with prediction:", newPrediction);
-    
+
     if (newPrediction && newPrediction.predictions) {
-      setOralHistory(prevHistory => {
+      setOralHistory((prevHistory) => {
         const newHistory = [
           ...prevHistory,
           {
             timestamp: new Date().toISOString(),
-            predictions: newPrediction.predictions
-          }
+            predictions: newPrediction.predictions,
+          },
         ];
         console.log("Setting new oral history:", newHistory);
         return newHistory;
@@ -52,7 +52,13 @@ function OhamodelPredict() {
       <OralHistory
         refreshTrigger={oralHistory}
         labelMapping={labelMapping}
-        jwtUserId = {jwtUser()}
+        jwtUserId={jwtUser()}
+      />
+
+      <Chatbot
+        singleOralResult={oralHistory}
+        labelMapping={labelMapping}
+        jwtUserId={jwtUser()}
       />
     </>
   );
