@@ -14,10 +14,10 @@ function AdminRoutes() {
       .then((isAdmin) => {
         console.log(isAdmin);
         if (!isAdmin) {
-          enqueueSnackbar("You must be a NYP Staff to view this page", {
+          enqueueSnackbar("You must be a Health Buddy staff to view this page", {
             variant: "error",
           });
-          console.log("You must be an NYP Staff to view this page");
+          console.log("You must be an Health Buddy staff to view this page");
           navigate("/");
         }
       })

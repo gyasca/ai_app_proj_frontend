@@ -4,9 +4,12 @@ import {
   Typography,
   TextField,
   Button,
-  MenuItem,
+  Avatar,
+  IconButton,
+  Paper,
   Divider,
 } from "@mui/material";
+import { PhotoCamera, Delete } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
 import * as yup from "yup";
@@ -20,18 +23,17 @@ import { GoogleLogin } from "@react-oauth/google";
 function Register() {
   const navigate = useNavigate();
   const { setUser } = useContext(UserContext);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [tempFilePath, setTempFilePath] = useState(null);
 
   const formik = useFormik({
     initialValues: {
       email: "",
       password: "",
-      username: "@",
-      role: "user",  // Default role set to 'user'
+      username: "",
       confirmPassword: "",
-      yearOfStudy: 1,
-      staffId: "",
-      department: "",
-      position: "",
+      role: "user",
+      profile_photo_file_path: "",
     },
     validationSchema: yup.object({
       username: yup
@@ -41,8 +43,8 @@ function Register() {
         .max(50, "Username must be at most 50 characters")
         .required("Username is required")
         .matches(
-          /^[a-zA-Z '-,.]+$/,
-          "Only allow letters, spaces and characters: ' - , ."
+          /^[a-zA-Z0-9 '-,.]+$/,
+          "Only allow letters, numbers, spaces, and characters: ' - , ."
         ),
       email: yup
         .string()
@@ -64,62 +66,162 @@ function Register() {
         .trim()
         .required("Confirm password is required")
         .oneOf([yup.ref("password")], "Passwords must match"),
-      role: yup.string().required("Role is required"),
-      adminNumber: yup.string().when("role", {
-        is: "student",
-        then: yup.string().required("Admin number is required for students"),
-      }),
-      course: yup.string().when("role", {
-        is: "student",
-        then: yup.string().required("Course is required for students"),
-      }),
-      yearOfStudy: yup.number().when("role", {
-        is: "student",
-        then: yup
-          .number()
-          .required("Year of study is required for students")
-          .min(1, "Year of study must be at least 1")
-          .max(5, "Year of study must be at most 5"),
-      }),
-      staffId: yup.string().when("role", {
-        is: "staff",
-        then: yup.string().required("Staff ID is required for staff"),
-      }),
-      department: yup.string().when("role", {
-        is: "staff",
-        then: yup.string().required("Department is required for staff"),
-      }),
-      position: yup.string().when("role", {
-        is: "staff",
-        then: yup.string().required("Position is required for staff"),
-      }),
+      profile_photo_file_path: yup.mixed(),
     }),
+    // onSubmit: async (data) => {
+    //   try {
+    //     let profilePhotoFilePath = null;
+
+    //     if (data.profilePhoto) {
+    //       const fileName = `${Date.now()}-${data.profilePhoto.name}`;
+    //       const filePath = `/src/assets/${fileName}`;
+    //       // In a real application, you would handle file upload to your server here
+    //       profilePhotoFilePath = filePath;
+    //     }
+
+    //     const userData = {
+    //       email: data.email.trim().toLowerCase(),
+    //       password: data.password,
+    //       username: data.username,
+    //       role: data.role,
+    //       profilePhotoFilePath
+    //     };
+
+    //     const res = await http.post("/user/register", userData);
+    //     toast.success("Registration successful. Please log in.");
+    //     navigate("/login");
+    //   } catch (err) {
+    //     toast.error(`Registration failed: ${err.response?.data?.message || "Unknown error"}`);
+    //   }
+    // }
     onSubmit: (data) => {
+      // Prepare the registration data
       const userData = {
         email: data.email.trim().toLowerCase(),
         password: data.password,
         username: data.username,
-        role: data.role,
-        adminNumber: data.role === "student" ? data.adminNumber : null,
-        course: data.role === "student" ? data.course : null,
-        yearOfStudy: data.role === "student" ? data.yearOfStudy : null,
-        staffId: data.role === "staff" ? data.staffId : null,
-        department: data.role === "staff" ? data.department : null,
-        position: data.role === "staff" ? data.position : null,
+        role: "user",
+        profile_photo_file_path: data.profile_photo_file_path || null,
       };
 
+      console.log("User data to register: ", userData);
+
+      // Register the user
       http
         .post("/user/register", userData)
-        .then((res) => {
-          console.log(res.data);
-          toast.success("Registration successful. Please log in.");
-          navigate("/login");
+        .then((registerRes) => {
+          console.log(registerRes.data);
+          toast.success("Registration successful. Logging you in...");
+
+          // Log in the user after successful registration
+          const loginData = {
+            email: data.email.trim().toLowerCase(),
+            password: data.password,
+          };
+
+          http
+            .post("/user/login", loginData)
+            .then((loginRes) => {
+              console.log("Login response:", loginRes.data);
+
+              // Store the access token in localStorage
+              const accessToken = loginRes.data.accessToken;
+              localStorage.setItem("accessToken", accessToken);
+
+              // Decode the access token to get user details
+              const decodedToken = jwtDecode(accessToken);
+              const userId = decodedToken.userId;
+
+              console.log(
+                "Successfully authenticated, accessToken:",
+                accessToken
+              );
+              console.log(
+                "Successfully authenticated, decoded Token:",
+                decodedToken
+              );
+              console.log("Successfully authenticated, user id:", userId);
+
+              // Fetch user details using the user ID
+              http
+                .get(`/user/${userId}`)
+                .then((userRes) => {
+                  console.log("User details:", userRes.data);
+
+                  // Set user data in your application state (if applicable)
+                  setUser(userRes.data);
+
+                  // Navigate based on user role
+                  if (userRes.data.role === "admin") {
+                    navigate("/admin/home");
+                  } else {
+                    navigate("/dashboard");
+                  }
+                })
+                .catch((userErr) => {
+                  console.error("Error fetching user details:", userErr);
+                  toast.error("Error fetching user details");
+                });
+            })
+            .catch((loginErr) => {
+              console.error("Error logging in:", loginErr);
+              toast.error("Email or password is incorrect");
+            });
         })
-        .catch((err) => {
-          toast.error(`Registration failed: ${err.response?.data?.message || "Unknown error"}`);
+        .catch((registerErr) => {
+          console.error("Registration failed:", registerErr);
+          toast.error(
+            `Registration failed: ${
+              registerErr.response?.data?.message || "Unknown error"
+            }`
+          );
         });
     },
   });
+
+  const handleImageChange = async (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Show preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Upload image
+      const formData = new FormData();
+      formData.append("profilePhoto", file);
+
+      try {
+        const res = await http.post("/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        formik.setFieldValue("profile_photo_file_path", res.data.filePath);
+        setTempFilePath(res.data.filePath);
+        console.log(tempFilePath);
+        console.log(res.data.filePath);
+      } catch (err) {
+        toast.error("Failed to upload image");
+      }
+    }
+  };
+
+  const removeImage = () => {
+    formik.setFieldValue("profile_photo_file_path", null);
+    setPreviewImage(null);
+
+    // Extract only the filename from the full URL
+    const fileNameToDelete = tempFilePath.split(import.meta.env.VITE_FILE_BASE_URL + "/uploads/")[1]; // Removes base URL
+
+    http.delete("/delete/" + fileNameToDelete).then((deleteRes) => {
+        console.log("Delete response:", deleteRes.data);
+    }).catch((error) => {
+        console.error("Error deleting file:", error);
+    });
+};
+
 
   const handleGoogleSuccess = (credentialResponse) => {
     const decoded = jwtDecode(credentialResponse.credential);
@@ -127,13 +229,9 @@ function Register() {
 
     const userData = {
       email: decoded.email,
-      password: "googlesecretpasswordxx94n2a", // You might want to generate a random password here
-      username: decoded.username,
-      role: "student", // Default role for Google sign-ups
-      profilePictureFilePath: decoded.picture,
-      // adminNumber: decoded.sub, // Using Google's sub as a placeholder
-      // course: "Not specified",
-      // yearOfStudy: 1,
+      password: "googlesecretpasswordxx94n2a",
+      username: decoded.name,
+      profile_photo_file_path: decoded.picture,
     };
 
     http
@@ -151,7 +249,11 @@ function Register() {
             loginUser(decoded.email);
           })
           .catch((err) => {
-            toast.error(`Registration failed: ${err.response?.data?.message || "Unknown error"}`);
+            toast.error(
+              `Registration failed: ${
+                err.response?.data?.message || "Unknown error"
+              }`
+            );
           });
       });
   };
@@ -169,7 +271,9 @@ function Register() {
         navigate("/");
       })
       .catch((err) => {
-        toast.error(`Login failed: ${err.response?.data?.message || "Unknown error"}`);
+        toast.error(
+          `Login failed: ${err.response?.data?.message || "Unknown error"}`
+        );
       });
   };
 
@@ -185,6 +289,56 @@ function Register() {
       <Typography variant="h5" sx={{ my: 2 }}>
         Register
       </Typography>
+
+      {/* Profile Photo Upload Section */}
+      <Paper
+        elevation={0}
+        sx={{
+          p: 2,
+          mb: 3,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          bgcolor: "background.default",
+        }}
+      >
+        <Box sx={{ position: "relative" }}>
+          <Avatar
+            src={previewImage || ""}
+            sx={{ width: 100, height: 100, mb: 2 }}
+          />
+
+          {previewImage && (
+            <IconButton
+              size="small"
+              sx={{
+                position: "absolute",
+                top: -10,
+                right: -10,
+                bgcolor: "background.paper",
+              }}
+              onClick={removeImage}
+            >
+              <Delete />
+            </IconButton>
+          )}
+        </Box>
+        <Button
+          component="label"
+          variant="outlined"
+          startIcon={<PhotoCamera />}
+          sx={{ mt: 1 }}
+        >
+          Upload Photo
+          <input
+            hidden
+            accept="image/*"
+            type="file"
+            onChange={handleImageChange}
+          />
+        </Button>
+      </Paper>
+
       <Box
         sx={{
           maxWidth: "500px",
@@ -204,6 +358,7 @@ function Register() {
           OR
         </Typography>
       </Box>
+
       <Box
         component="form"
         sx={{ maxWidth: "500px" }}
@@ -257,7 +412,8 @@ function Register() {
           onChange={formik.handleChange}
           onBlur={formik.handleBlur}
           error={
-            formik.touched.confirmPassword && Boolean(formik.errors.confirmPassword)
+            formik.touched.confirmPassword &&
+            Boolean(formik.errors.confirmPassword)
           }
           helperText={
             formik.touched.confirmPassword && formik.errors.confirmPassword

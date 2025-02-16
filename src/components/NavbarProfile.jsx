@@ -59,8 +59,7 @@ export function NavbarProfile() {
       </Typography>
       &nbsp;
       <IconButton onClick={(e) => handlePopoverOpen(e)}>
-        <Avatar></Avatar>
-        {/* <ProfilePicture user={user} /> */}
+        <ProfilePicture user={user} />
       </IconButton>
       <Popover
         id={"userPopover"}
@@ -77,8 +76,7 @@ export function NavbarProfile() {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", margin: "1rem" }}>
-          {/* <ProfilePicture user={user} /> */}
-          <Avatar></Avatar>
+          <ProfilePicture user={user} />
           <Box marginLeft={"1rem"}>
             <Typography variant="subtitle1">{user.name}</Typography>
             <Typography variant="body2">{user.email}</Typography>
@@ -99,8 +97,8 @@ export function NavbarProfile() {
             </ListItemButton>
           </ListItem> */}
 
-          {user.role == "staff" && (
-            <ListItem key={"Staff Panel"} disablePadding>
+          {user.role == "admin" && (
+            <ListItem key={"Admin Panel"} disablePadding>
               <ListItemButton
                 component={Link}
                 to="/admin/home"
@@ -109,12 +107,12 @@ export function NavbarProfile() {
                 <ListItemIcon>
                   <AdminPanelSettingsIcon />
                 </ListItemIcon>
-                <ListItemText primary={"Staff Panel"} />
+                <ListItemText primary={"Admin Panel"} />
               </ListItemButton>
             </ListItem>
           )}
-          {user.role == "staff" && (
-            <ListItem key={"Register students"} disablePadding>
+          {user.role == "admin" && (
+            <ListItem key={"Register users"} disablePadding>
               <ListItemButton
                 component={Link}
                 to="/admin/register"
@@ -123,7 +121,7 @@ export function NavbarProfile() {
                 <ListItemIcon>
                   <BadgeIcon />
                 </ListItemIcon>
-                <ListItemText primary={"Register students"} />
+                <ListItemText primary={"Register users"} />
               </ListItemButton>
             </ListItem>
           )}
@@ -139,6 +137,19 @@ export function NavbarProfile() {
               <ListItemText primary={"Support"} />
             </ListItemButton>
           </ListItem> */}
+           <ListItem key={"Edit Profile"} disablePadding>
+              <ListItemButton
+                component={Link}
+                to="/profile/edit"
+                onClick={() => setIsPopoverOpen(false)}
+              >
+                <ListItemIcon>
+                  <BadgeIcon />
+                </ListItemIcon>
+                <ListItemText primary={"Edit Profile"} />
+              </ListItemButton>
+            </ListItem>
+
           <ListItem key={"Logout"} disablePadding>
             <ListItemButton onClick={() => handleLogout()}>
               <ListItemIcon>

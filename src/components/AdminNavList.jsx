@@ -30,7 +30,7 @@ function AdminNavList() {
             <ListItem key={"Home"} disablePadding>
                 <ListItemButton component={Link} to="/admin/home">
                     <ListItemIcon><Home /></ListItemIcon>
-                    <ListItemText primary={"Dashboard"} />
+                    <ListItemText primary={"Admin Dashboard"} />
                 </ListItemButton>
             </ListItem>
             
@@ -65,25 +65,25 @@ function AdminNavList() {
                 </List>
             </Collapse>
             
-            <ListItem key={"Modules"} disablePadding>
+            <ListItem key={"Bookings"} disablePadding>
                 <ListItemButton onClick={handleClickModules}>
                     <ListItemIcon><School /></ListItemIcon>
-                    <ListItemText primary={"Modules"} />
+                    <ListItemText primary={"Bookings"} />
                     {modulesOpen ? <ExpandLess /> : <ExpandMore />}
                 </ListItemButton>
             </ListItem>
             <Collapse in={modulesOpen} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                    <ListItem key={"ViewModules"} disablePadding>
-                        <ListItemButton component={Link} to="/admin/modules">
+                    <ListItem key={"ViewBookings"} disablePadding>
+                        <ListItemButton component={Link} to="/admin/bookings">
                             <ListItemIcon><Assignment /></ListItemIcon>
-                            <ListItemText primary={"View Modules"} />
+                            <ListItemText primary={"View Bookings"} />
                         </ListItemButton>
                     </ListItem>
-                    <ListItem key={"CreateModule"} disablePadding>
-                        <ListItemButton component={Link} to="/admin/modules/create">
+                    <ListItem key={"CreateBookings"} disablePadding>
+                        <ListItemButton component={Link} to="/admin/bookings/create">
                             <ListItemIcon><AssignmentTurnedIn /></ListItemIcon>
-                            <ListItemText primary={"Create Module"} />
+                            <ListItemText primary={"Create Bookings"} />
                         </ListItemButton>
                     </ListItem>
                 </List>
@@ -119,25 +119,25 @@ function AdminNavList() {
                 </List>
             </Collapse> */}
 
-            <ListItem key={"Courses"} disablePadding>
+            <ListItem key={"Forum"} disablePadding>
                 <ListItemButton onClick={handleClickCourses}>
                     <ListItemIcon><LibraryBooks /></ListItemIcon>
-                    <ListItemText primary={"Courses"} />
+                    <ListItemText primary={"Forum"} />
                     {coursesOpen ? <ExpandLess /> : <ExpandMore />}
                 </ListItemButton>
             </ListItem>
             <Collapse in={coursesOpen} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                    <ListItem key={"ViewCourses"} disablePadding>
-                        <ListItemButton component={Link} to="/admin/courses">
+                    <ListItem key={"ViewForum"} disablePadding>
+                        <ListItemButton component={Link} to="/admin/forum">
                             <ListItemIcon><LibraryBooks /></ListItemIcon>
-                            <ListItemText primary={"View Courses"} />
+                            <ListItemText primary={"View Forum"} />
                         </ListItemButton>
                     </ListItem>
-                    <ListItem key={"CreateCourse"} disablePadding>
-                        <ListItemButton component={Link} to="/admin/courses/create">
+                    <ListItem key={"CreateForumPost"} disablePadding>
+                        <ListItemButton component={Link} to="/admin/forum/create">
                             <ListItemIcon><Add /></ListItemIcon>
-                            <ListItemText primary={"Create Course"} />
+                            <ListItemText primary={"Create Forum Post"} />
                         </ListItemButton>
                     </ListItem>
                 </List>
