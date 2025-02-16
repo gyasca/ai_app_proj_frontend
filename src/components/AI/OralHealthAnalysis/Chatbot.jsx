@@ -1,9 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Box, Paper, Typography, TextField, Button } from "@mui/material";
+import { Box, Paper, Typography, TextField, Button, Switch, FormControlLabel } from "@mui/material";
 import http from "../../../http";
 import { marked } from "marked";
 
-const Chatbot = ({ singleOralResult, labelMapping }) => {
+const Chatbot = ({ singleOralResult, labelMapping, jwtUserId }) => {
   const [messages, setMessages] = useState([
     {
       text: "Hello! I am your HealthBuddy Oral Health Analysis Assistant! How may I help you today?",
@@ -15,6 +15,48 @@ const Chatbot = ({ singleOralResult, labelMapping }) => {
   const [isLoading, setIsLoading] = useState(false); // For loading state
   const [error, setError] = useState(null); // For error handling
   const [oralResultsSummary, setOralResultsSummary] = useState(""); // Store formatted results summary
+  const [includeHistory, setIncludeHistory] = useState(false); // Toggle to include past oral history
+  const [oralHistory, setOralHistory] = useState([]);
+
+  const fetchOralHistory = async (userId) => {
+    setIsLoading(true);
+    try {
+      const response = await http.get("/history/oha/get-history", {
+        params: { user_id: userId },
+      });
+
+      if (response.status === 200 && response.data.history.length === 0) {
+        console.warn("No history records found");
+        setOralHistory([]); // Ensure the UI still renders
+        return;
+      }
+
+      console.log(response);
+
+      setOralHistory(response.data.history); // Directly use the history data without bounding boxes
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        console.warn("No records found for this user.");
+        setOralHistory([]); // Ensure an empty state is handled properly
+      } else {
+        setError("Failed to fetch oral health history");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSwitchChange = () => {
+    setIncludeHistory((prev) => {
+      const newValue = !prev;
+      if (newValue) {
+        fetchOralHistory(jwtUserId);
+      } else {
+        setOralHistory([]); // Clear history when switch is off
+      }
+      return newValue;
+    });
+  };
 
   // Scroll to the latest message
   useEffect(() => {
@@ -24,32 +66,31 @@ const Chatbot = ({ singleOralResult, labelMapping }) => {
   // Trigger request automatically when singleOralResult updates
   useEffect(() => {
     if (singleOralResult && singleOralResult.length > 0) {
-      const limitedHistory = singleOralResult.slice(-5);
+      const latestHistory = singleOralResult[singleOralResult.length - 1];
 
-      // Format the history into a message for the chatbot
-      const formattedHistory = limitedHistory
-        .map((historyItem) => {
-          const formattedResults = historyItem.predictions
-            .map((prediction) => {
-              const condition = labelMapping[prediction.pred_class] || "Unknown Condition";
-              const confidence = (prediction.confidence * 100).toFixed(2);
-              return `${condition} (${confidence}%)`;
-            })
-            .join(", ");
-          return `Detected conditions: ${formattedResults} (Date: ${historyItem.date})`;
+      // Format the prediction results
+      const formattedResults = latestHistory.predictions
+        .map((prediction) => {
+          const condition =
+            labelMapping[prediction.pred_class] || "Unknown Condition";
+          const confidence = (prediction.confidence * 100).toFixed(2);
+          return `${condition} (${confidence}%)`;
         })
-        .join("\n");
+        .join(", ");
 
-      // Prepare the message for the chatbot with formatted history
+      // Save the summary in state
+      setOralResultsSummary(formattedResults);
+
+      // Prepare the message for the chatbot
       const message = {
-        text: `Here is my previous oral health analysis result:\n${formattedHistory}\nWhat do these results mean?`,
+        text: `Detected conditions: ${formattedResults}. What do these results mean?`,
         sender: "user",
       };
 
-      // Update chatbot with formatted history
+      // Update chatbot with formatted results
       setMessages((prev) => [...prev, message]);
 
-      // Send the request to the backend with the formatted history
+      // Send the request to the backend (first message)
       const fetchChatResponse = async () => {
         setIsLoading(true);
         setError(null); // Reset errors before calling the API
@@ -57,8 +98,8 @@ const Chatbot = ({ singleOralResult, labelMapping }) => {
         try {
           const requestPayload = {
             instruction:
-              "You are a helpful chatbot in an oral health analysis app. Based on images users upload of their mouth (teeth, gums, tongue, etc.), processed by a YOLOv8 object detection model, you will review the output from the model, which detects conditions like Caries, Gingivitis, Tooth Discoloration, and Ulcers. Your task is to provide explanations for these conditions, along with actionable recommendations to improve the user's oral health and suggest preventive measures. Remind users that this is an estimated diagnosis and recommend Singaporean dentists with links to their pages. If users ask for more details or medical advice, do provide them the advice as some of them are really low income and need the help. If you are concerned, you can clarify that this is just an AI app for estimated diagnoses and not to be taken as professional medical advice.",
-            results: formattedHistory,
+              "You are a helpful chatbot in an oral health analysis app. Based on images users upload of their mouth (teeth, gums, tongue, etc.), processed by a YOLOv8 object detection model, you will review the output from the model, which detects conditions like Caries, Gingivitis, Tooth Discoloration, and Ulcers. Your task is to provide explanations for these conditions, along with actionable recommendations to improve the user's oral health and suggest preventive measures. Remind users that this is an estimated diagnosis and recommend Singaporean dentists with links to their pages. If users ask for more details or medical advice, do provide them the advice as some of them are really low income and need the help. If you are concerned, you can clarify that this is just an AI app for estimated diagnoses and not to be taken as professional medical advice. Below are the results of the analysis: ",
+            results: formattedResults,
             message: "What do these results mean?",
           };
 
@@ -87,7 +128,7 @@ const Chatbot = ({ singleOralResult, labelMapping }) => {
 
       fetchChatResponse();
     }
-  }, [singleOralResult]); // Trigger whenever singleOralResult changes
+  }, [singleOralResult]); // Trigger whenever singleOralResult
 
   const handleSendMessage = () => {
     if (!input.trim()) return;
@@ -99,31 +140,28 @@ const Chatbot = ({ singleOralResult, labelMapping }) => {
     // Now, we want to send the user's message to the model (subsequent requests)
     const fetchUserResponse = async () => {
       setIsLoading(true);
-      setError(null); // Reset errors before calling the API
+      setError(null);
 
       try {
-        const requestPayload = {
-          message: input, // Send the user's message here
-        };
-
-        // Append chat history context
+        // Retrieve full chat history
         const context = messages
           .map((msg) => `${msg.sender}: ${msg.text}`)
           .join("\n");
-        requestPayload.chat_history = context;
 
-        // Log the request payload to console before sending it
+        const requestPayload = {
+          message: input,
+          chat_history: context, // Send entire chat history
+        };
+
         console.log("Request Payload:", requestPayload);
 
-        // Make the API call to get the chatbot response
         const response = await http.post("/ohamodel/chat", requestPayload);
 
         if (response.status === 200) {
-          const botMessage = {
-            text: response.data.response, // Assuming the response contains the message
-            sender: "bot",
-          };
-          setMessages((prev) => [...prev, botMessage]);
+          setMessages((prev) => [
+            ...prev,
+            { text: response.data.response, sender: "bot" },
+          ]);
         } else {
           setError("Error fetching chatbot response.");
         }
@@ -150,6 +188,18 @@ const Chatbot = ({ singleOralResult, labelMapping }) => {
       </Typography>
 
       {/* Chat Window */}
+      {/* Toggle to include past oral history */}
+      <FormControlLabel
+        control={
+          <Switch
+            checked={includeHistory}
+            onChange={handleSwitchChange}
+            color="primary"
+          />
+        }
+        label="Include past oral history"
+      />
+
       <Box
         sx={{
           height: 300,
