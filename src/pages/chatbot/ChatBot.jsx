@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import axios from "axios";
+import useUser from "../../context/useUser";
 
 const ChatBot = () => {
+    const {user, jwtUser} = useUser()
     const [messages, setMessages] = useState([
         { from: "bot", text: "Hello! How can I assist you today?" }
     ]);
@@ -27,7 +29,7 @@ const ChatBot = () => {
                     role: msg.from === "bot" ? "assistant" : "user",
                     content: msg.text,
                 })),
-                { role: "user", content: trimmedInput },
+                { role: "user", content: trimmedInput + "(user id is " + jwtUser()+")"},
             ];
 
             console.log("Payload to API:", memory); // Debug the payload

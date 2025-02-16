@@ -233,7 +233,7 @@ export function Navbar() {
                         LinkComponent={Link}
                         variant="text"
                         color="inherit"
-                        to="/food"
+                        to="/chatbot"
                       >
                         Chatbot
                       </Button>
