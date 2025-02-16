@@ -225,9 +225,9 @@ const generatePDFReport = async () => {
     stroke: ['#36A2EB', '#4BC0C0'],
     diabetes: ['#FFCE56', '#FFD700']
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     setLoading(true);
     setError(null);
 
@@ -259,12 +259,6 @@ const generatePDFReport = async () => {
             }]
         };
 
-        console.group('Request Details');
-        console.log('Request URL:', 'http://localhost:3001/dpmodel/predictData');
-        console.log('Request Method:', 'POST');
-        console.log('Request Data:', JSON.stringify(requestData, null, 2));
-        console.groupEnd();
-
         const response = await fetch('http://localhost:3001/dpmodel/predictData', {
             method: 'POST',
             headers: {
@@ -274,64 +268,32 @@ const generatePDFReport = async () => {
             body: JSON.stringify(requestData)
         });
 
-        console.group('Response Details');
-        console.log('Response Status:', response.status);
-        console.log('Response OK:', response.ok);
-        
-        // Log response headers
-        for (let [key, value] of response.headers.entries()) {
-            console.log(`${key}: ${value}`);
-        }
-
         if (!response.ok) {
-            const errorText = await response.text();
-            console.error('Error Response Text:', errorText);
-            
-            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log('Parsed Response Data:', data);
-        console.groupEnd();
+        console.log('Server response:', data);
 
         if (data.success) {
             setResult({
                 riskLevel: data.result.riskLevel,
                 confidence: data.result.confidence,
                 heartDiseaseRisk: data.result.riskScore,
-                strokeRisk: data.result.riskScore * 0.8,
-                diabetesRisk: data.result.riskScore * 0.9
+                strokeRisk: data.result.riskScore,
+                diabetesRisk: data.result.riskScore
             });
         } else {
             throw new Error(data.error || 'Failed to get prediction');
         }
     } catch (error) {
-        console.group('Error Details');
-        console.error('Error Name:', error.name);
-        console.error('Error Message:', error.message);
-        console.error('Error Stack:', error.stack);
-        
-        // Additional network error logging
-        if (error instanceof TypeError) {
-            console.error('Network Error Details:', {
-                message: 'Failed to fetch - check your server connection',
-                possibleReasons: [
-                    'Server is not running',
-                    'Incorrect port number',
-                    'CORS configuration issue',
-                    'Network connectivity problem'
-                ]
-            });
-        }
-        console.groupEnd();
-
-        // Set user-friendly error message
-        setError(`Failed to submit data: ${error.message}. Please check your connection and try again.`);
+        console.error('Error:', error);
+        setError(error.message);
     } finally {
         setLoading(false);
     }
 };
-  
+
   // Helper functions for BMI and BP calculations
   const calculateBMI = () => {
     const heightInMeters = formData.height / 100; // Convert height to meters
@@ -766,4 +728,3 @@ export default FormComponent;
 
 
           
-
