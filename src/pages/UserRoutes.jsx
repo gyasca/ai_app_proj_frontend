@@ -15,6 +15,10 @@ import StudentCompetenceMapPage from "./StudentCompetenceMapPage";
 import ViewCertificates from "./ViewCertificates";
 import HealthDashboard from "./HealthDashboard";
 import OhamodelPredict from "./ohamodel/OhamodelPredict";
+import AcnemodelPredict from "./acnemodel/AcnemodelPredict";
+import AnalysisHistory from "./acnemodel/AnalysisHistory";
+import ChatBot from "./acnemodel/ChatBot";
+
 // import Login from './Login'
 // import Register from './Register'
 // import Verify from './Verify'
@@ -54,6 +58,12 @@ function UserRoutes() {
       <Route path="/test1" element={<Test1 />} />
       <Route path="/dashboard" element={<HealthDashboard />} />
       <Route path="/oral-health/analyse" element={<OhamodelPredict />} />
+      <Route path="/acne-health/analyse" element={<AcnemodelPredict />} />
+      <Route path="/acne-health/chatbot" element={<ChatBot />} />
+      <Route
+        path="/acne-health/analysis-history"
+        element={<AnalysisHistory />}
+      />
 
       {/* if want to use this route must make sure to update the rest of the buttons that
       lead here. (unupdated as of 12 jan 2025) */}
