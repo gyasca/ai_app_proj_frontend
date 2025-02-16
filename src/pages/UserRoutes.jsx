@@ -16,6 +16,7 @@ import ViewCertificates from "./ViewCertificates";
 import HealthDashboard from "./HealthDashboard";
 import OhamodelPredict from "./ohamodel/OhamodelPredict";
 import DpModelPredict from "./dp_model/DpModelPredict";
+import PredictionHistory from "./dp_model/PredictionHistory";
 
 // import Login from './Login'
 // import Register from './Register'
@@ -57,6 +58,7 @@ function UserRoutes() {
       <Route path="/dashboard" element={<HealthDashboard />} />
       <Route path="/oral-health/analyse" element={<OhamodelPredict />} />
       <Route path="/disease-prediction/analyse" element={<DpModelPredict />} />
+      <Route path="/prediction-history" element={<PredictionHistory />} />
 
 
       {/* if want to use this route must make sure to update the rest of the buttons that
