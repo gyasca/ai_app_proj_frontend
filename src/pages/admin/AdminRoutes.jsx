@@ -1,29 +1,6 @@
 import { useContext, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import NotFound from "../errors/NotFound";
-import AdminPanelLanding from "./AdminPanelLanding";
-import AdminNavList from "../../components/AdminNavList";
-import ViewEmployees from "./ViewEmployees";
-import EditEmployee from "./EditEmployee";
-import ViewLeave from "./ViewLeave";
-import ViewUsers from "./ViewUsers";
-import CreateUser from "./CreateUser";
-import EditUser from "./EditUser";
-import BulkCreateUser from "../../components/BulkCreateUser";
-import { UserContext } from "../../main";
-import { useSnackbar } from "notistack";
-import { validateAdmin } from "../../functions/user";
-import { Box, List, Divider } from "@mui/material";
-import ViewSpecificUser from "./ViewSpecificUser";
-import CreateModule from "./Module/CreateModule";
-import EditModule from "./Module/EditModule";
-import ViewModules from "./Module/ViewModules";
-import ViewSpecificModule from "./Module/ViewSpecificModule";
 
-// Course (CoursModule functionalities are already inbuilt to course-related pages)
-import CreateCourse from "./Course/CreateCourse";
-import ViewCourses from "./Course/ViewCourses";
-import ViewSpecificCourse from "./Course/ViewSpecificCourse";
 
 function AdminRoutes() {
   // Routes for admin pages. To add authenication so that only admins can access these pages, add a check for the user's role in the UserContext

@@ -20,6 +20,8 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import http from "../../http"
+
 
 function FormComponent() {
   const [formData, setFormData] = useState({
@@ -230,69 +232,63 @@ const generatePDFReport = async () => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
+  
     try {
-        // Validate input data before submission
-        const requiredFields = ['gender', 'age', 'height', 'weight', 'sysBP', 'diaBP', 'BPMeds', 'diabetes', 'prevalentStroke', 'prevalentHyp', 'currentSmoker'];
-        const missingFields = requiredFields.filter(field => !formData[field]);
-        
-        if (missingFields.length > 0) {
-            throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
-        }
-
-        const heightInMeters = formData.height / 100;
-        const bmi = formData.weight / (heightInMeters * heightInMeters);
-
-        const requestData = {
-            data: [{
-                gender: formData.gender,
-                age: formData.age,
-                currentSmoker: formData.currentSmoker,
-                cigsPerDay: formData.currentSmoker === "1" ? formData.cigsPerDay : "0",
-                BPMeds: formData.BPMeds,
-                prevalentStroke: formData.prevalentStroke,
-                prevalentHyp: formData.prevalentHyp,
-                diabetes: formData.diabetes,
-                sysBP: formData.sysBP,
-                diaBP: formData.diaBP,
-                BMI: bmi.toFixed(2)
-            }]
-        };
-
-        const response = await fetch('http://localhost:3001/dpmodel/predictData', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(requestData)
+      // Validate all required fields are filled
+      const requiredFields = [
+        'gender', 'age', 'height', 'weight', 'sysBP', 'diaBP', 
+        'BPMeds', 'diabetes', 'prevalentStroke', 'prevalentHyp', 'currentSmoker'
+      ];
+      const missingFields = requiredFields.filter(field => !formData[field]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+  
+      // Calculate BMI
+      const heightInMeters = formData.height / 100;
+      const bmi = formData.weight / (heightInMeters * heightInMeters);
+  
+      const requestData = {
+        data: [{
+          gender: String(formData.gender),
+          age: String(formData.age),
+          currentSmoker: String(formData.currentSmoker),
+          cigsPerDay: String(formData.currentSmoker === "1" ? formData.cigsPerDay : "0"),
+          BPMeds: String(formData.BPMeds),
+          prevalentStroke: String(formData.prevalentStroke),
+          prevalentHyp: String(formData.prevalentHyp),
+          diabetes: String(formData.diabetes),
+          sysBP: String(formData.sysBP),
+          diaBP: String(formData.diaBP),
+          BMI: String(bmi.toFixed(2))
+        }]
+      };
+  
+      console.log('Request Data:', JSON.stringify(requestData, null, 2));
+  
+      // New POST request implementation
+      const response = await http.post('http://127.0.0.1:3001/dpmodel/predictData', requestData);
+      console.log('Response:', response.data);
+  
+      if (response.data.success) {
+        setResult({
+          riskLevel: response.data.result.riskLevel,
+          confidence: response.data.result.confidence,
+          heartDiseaseRisk: response.data.result.riskScore,
+          strokeRisk: response.data.result.riskScore,
+          diabetesRisk: response.data.result.riskScore
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Server response:', data);
-
-        if (data.success) {
-            setResult({
-                riskLevel: data.result.riskLevel,
-                confidence: data.result.confidence,
-                heartDiseaseRisk: data.result.riskScore,
-                strokeRisk: data.result.riskScore,
-                diabetesRisk: data.result.riskScore
-            });
-        } else {
-            throw new Error(data.error || 'Failed to get prediction');
-        }
+      } else {
+        throw new Error(response.data.error || 'Prediction failed');
+      }
     } catch (error) {
-        console.error('Error:', error);
-        setError(error.message);
+      console.error('Prediction error:', error);
+      setError(error.message);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
 
   // Helper functions for BMI and BP calculations
   const calculateBMI = () => {
