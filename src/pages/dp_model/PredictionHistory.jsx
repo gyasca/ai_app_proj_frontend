@@ -18,15 +18,17 @@ import {
   Grid
 } from '@mui/material';
 import jsPDF from 'jspdf';
+import useUser from '../../context/useUser';
 
 function PredictionHistory() {
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedPrediction, setSelectedPrediction] = useState(null);
+  const {user,jwtUser}=useUser();
 
   // Hardcoded user ID - replace with actual authentication
-  const userId = 1;
+  const userId = jwtUser();
 
   useEffect(() => {
     const fetchPredictionHistory = async () => {
