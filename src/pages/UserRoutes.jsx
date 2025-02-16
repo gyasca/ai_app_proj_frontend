@@ -8,12 +8,13 @@ import StudentPortal from "./StudentPortal";
 import Dashboard from "./Dashboard";
 import Test1 from "./Test1";
 import Register from "./Register";
-import StudentCompetenceMapPage from "./StudentCompetenceMapPage";
 import HealthDashboard from "./HealthDashboard";
 import OhamodelPredict from "./ohamodel/OhamodelPredict";
 import DpModelPredict from "./dp_model/DpModelPredict";
 import PredictionHistory from "./dp_model/PredictionHistory";
-
+import AcnemodelPredict from "./acnemodel/AcnemodelPredict";
+import AnalysisHistory from "./acnemodel/AnalysisHistory";
+import ChatBot from "./acnemodel/ChatBot";
 
 import EditProfile from "./EditProfile";
 
@@ -57,7 +58,6 @@ function UserRoutes() {
       <Route path="/disease-prediction/analyse" element={<DpModelPredict />} />
       <Route path="/prediction-history" element={<PredictionHistory />} />
 
-
       {/* if want to use this route must make sure to update the rest of the buttons that
       lead here. (unupdated as of 12 jan 2025) */}
       <Route path="/dashboard-old" element={<Dashboard />} />
@@ -66,9 +66,8 @@ function UserRoutes() {
       <Route path="/acne-health/chatbot" element={<ChatBot />} />
       <Route
         path="/acne-health/analysis-history"
-        element={<AnalysisHistory />} />
-
-
+        element={<AnalysisHistory />}
+      />
 
       {/* <Route path="/register" element={<Register />} /> */}
       {/* <Route path="/login" element={!user ? <Login /> : <Navigate to={"/"} />} />

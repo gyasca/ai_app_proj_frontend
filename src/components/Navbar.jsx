@@ -281,7 +281,7 @@ export function Navbar() {
                         LinkComponent={Link}
                         variant="text"
                         color="inherit"
-                        to="/metrics"
+                        to="/food/metrics"
                       >
                         Food metrics
                       </Button>
