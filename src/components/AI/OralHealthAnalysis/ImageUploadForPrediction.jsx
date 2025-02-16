@@ -1,258 +1,170 @@
-import React, { useState, useCallback, useRef } from "react";
+// 220147Q Chng Kai Jie Ryan
+import React, { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import {
-  CircularProgress,
-  Typography,
-  Paper,
-  Box,
-  Button,
-  IconButton,
-  Card,
-  CardContent,
-  CardHeader,
-  LinearProgress,
-  Alert,
-  Stack,
-  Dialog,
-  DialogContent,
-  DialogActions,
-  DialogTitle,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Chip,
-  Grid,
-  useTheme,
-  useMediaQuery,
-} from "@mui/material";
-import {
-  CloudUpload as CloudUploadIcon,
-  PhotoCamera as PhotoCameraIcon,
-  Error as ErrorIcon,
-  Close as CloseIcon,
-  Replay as ReplayIcon,
-  Check as CheckIcon,
-  ExpandMore as ExpandMoreIcon,
-  Circle as CircleIcon,
-} from "@mui/icons-material";
-import http from "../../../http";
-import SaveResultsButton from "./SaveResultsButton";
+import { CircularProgress, Typography } from "@mui/material";
+import http from "../../http";
 
 const MAX_FILE_SIZE = 2048 * 2048; // 2MB
-const IMAGE_PREVIEW_HEIGHT = 400; // Consistent height for previews
 
-const ImageUploadForPrediction = ({
-  modelRoute,
-  labelMapping,
-  onPredictionResults,
-  predictionResults,
-  updateOralHistory,
-}) => {
-  const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+const ImageUploadForPrediction = ({ modelRoute, labelMapping }) => {
   const [uploading, setUploading] = useState(false);
   const [predictionResult, setPredictionResult] = useState(null);
   const [error, setError] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
-  const [finalImage, setFinalImage] = useState(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [capturedImage, setCapturedImage] = useState(null);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
-  const canvasRef = useRef(null);
-  const [cameraError, setCameraError] = useState(null);
-  const [originalImagePathWithHostURL, setOriginalImagePathWithHostURL] =
-    useState(null);
-  const [newHistory, setNewHistory] = useState([]);
+  const [finalImage, setFinalImage] = useState(null); // To hold final image after drawing bounding boxes
 
-  const groupPredictions = (predictions) => {
-    return predictions.reduce((acc, prediction) => {
-      const className = labelMapping[prediction.pred_class] || "Unknown";
-      if (!acc[className]) {
-        acc[className] = [];
-      }
-      acc[className].push(prediction);
-      return acc;
-    }, {});
-  };
-
-  const handleFile = async (file) => {
-    if (file.size > MAX_FILE_SIZE) {
-      setError("Maximum file size is 2MB");
-      return;
-    }
-
-    const validMIMETypes = ["image/jpeg", "image/png", "image/gif"];
-    if (!validMIMETypes.includes(file.type)) {
-      setError("Invalid file type. Please upload an image (JPEG, PNG, GIF).");
-      return;
-    }
-
-    setUploading(true);
-    setError(null);
-
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result);
-    reader.readAsDataURL(file);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
+  const savePredictionResult = async (imageData, predictions) => {
     try {
-      const response = await http.post(`${modelRoute}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      if (!imageData) {
+        console.error("No image data available");
+        setError("Failed to save analysis: No image data");
+        return;
+      }
+
+      // Get the annotated image URL from the canvas
+      const canvas = document.createElement("canvas");
+      const img = new Image();
+      img.src = imageData;
+
+      await new Promise((resolve) => {
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext("2d");
+
+          // Draw the original image
+          ctx.drawImage(img, 0, 0);
+
+          // Draw bounding boxes
+          ctx.strokeStyle = "yellow"; // Changed to yellow for better visibility
+          ctx.lineWidth = 3; // Made lines thicker
+
+          console.log("Drawing predictions:", predictions); // Debug log
+          predictions.forEach((pred) => {
+            const x = pred.x_center - pred.width / 2;
+            const y = pred.y_center - pred.height / 2;
+            console.log(
+              `Drawing box at (${x}, ${y}) with width ${pred.width} and height ${pred.height}`
+            ); // Debug log
+
+            // Draw the bounding box
+            ctx.strokeRect(x, y, pred.width, pred.height);
+
+            // Add label with background for better visibility
+            const label = getConditionName(pred.class);
+            ctx.font = "16px Arial";
+            const textWidth = ctx.measureText(label).width;
+
+            // Draw label background
+            ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.fillRect(x, y - 20, textWidth + 4, 20);
+
+            // Draw label text
+            ctx.fillStyle = "red";
+            ctx.fillText(label, x + 2, y - 5);
+          });
+
+          resolve();
+        };
       });
 
-      setPredictionResult(response.data);
-      setNewHistory(response.data);
-      console.log("Prediction results:", response.data);
+      const annotatedImageUrl = canvas.toDataURL("image/jpeg");
+      console.log(
+        "Generated annotated image URL length:",
+        annotatedImageUrl.length
+      ); // Debug log
+
+      const analysisData = {
+        imageUrl: imageData,
+        annotatedImageUrl: annotatedImageUrl,
+        predictions: predictions,
+        timestamp: new Date().toISOString(),
+        notes: "",
+      };
+
+      console.log("Sending analysis data with annotated image"); // Debug log
+
+      const response = await http.post("/skin-analysis/save", analysisData);
+
+      if (response.data && response.data.id) {
+        console.log("Analysis saved successfully with ID:", response.data.id);
+      } else {
+        throw new Error("Invalid response format");
+      }
     } catch (err) {
-      setError("Prediction failed. Please try again.");
-      console.error("Prediction error:", err);
-    } finally {
-      setUploading(false);
-    }
-
-    const formDataForUpload = new FormData();
-    formDataForUpload.append("oralPhoto", file);
-
-    try {
-      const img_upload_response = await http.post(
-        "/upload/oral",
-        formDataForUpload,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      // Store the file URL returned from the backend
-      setOriginalImagePathWithHostURL(
-        img_upload_response.data.filePathWithHostURL
-      );
-      console.log(img_upload_response.data.filePathWithHostURL);
-    } catch (err) {
-      setError("Upload failed.");
-      console.error("Upload error:", err);
-    } finally {
-      setUploading(false);
+      console.error("Error saving analysis:", err);
+      console.error("Error details:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+      });
+      setError("Failed to save analysis results.");
     }
   };
 
-  const onDrop = useCallback(async (acceptedFiles) => {
-    if (acceptedFiles && acceptedFiles.length > 0) {
-      await handleFile(acceptedFiles[0]);
-    }
-  }, []);
+  const getConditionName = (classId) => {
+    const conditions = {
+      1: "blackhead",
+      2: "whitehead",
+      3: "papule",
+      4: "pustule",
+      5: "nodule",
+    };
+    return conditions[classId] || "unknown";
+  };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const onDrop = useCallback(
+    async (acceptedFiles) => {
+      if (acceptedFiles && acceptedFiles.length > 0) {
+        const file = acceptedFiles[0];
+        if (file.size > MAX_FILE_SIZE) {
+          setError("Maximum file size is 2MB");
+          return;
+        }
+
+        setUploading(true);
+        setError(null);
+
+        // Read file as base64
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Data = reader.result;
+          setImagePreview(base64Data);
+
+          try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await http.post(`${modelRoute}`, formData, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            });
+
+            if (response.data && response.data.predictions) {
+              setPredictionResult(response.data);
+              await savePredictionResult(base64Data, response.data.predictions);
+            }
+          } catch (err) {
+            console.error("Error processing image:", err);
+            setError("Failed to process image.");
+          } finally {
+            setUploading(false);
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    },
+    [modelRoute]
+  );
+
+  const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: "image/jpeg, image/png, image/gif",
     multiple: false,
     maxSize: MAX_FILE_SIZE,
   });
 
-  // Camera functions remain the same...
-  const startCamera = async () => {
-    try {
-      setCameraError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: "environment",
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setIsCameraOpen(true);
-    } catch (err) {
-      setCameraError(
-        "Unable to access camera. Please make sure you've granted camera permissions."
-      );
-      console.error("Camera error:", err);
-    }
-  };
-
-  const stopCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    setIsCameraOpen(false);
-    setCapturedImage(null);
-    setCameraError(null);
-  };
-
-  const capturePhoto = () => {
-    if (videoRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const aspectRatio = video.videoWidth / video.videoHeight;
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      canvas.getContext("2d").drawImage(video, 0, 0);
-
-      const imageDataUrl = canvas.toDataURL("image/jpeg", 0.95);
-      setCapturedImage(imageDataUrl);
-    }
-  };
-
-  const retakePhoto = () => {
-    setCapturedImage(null);
-  };
-
-  const acceptPhoto = async () => {
-    if (capturedImage) {
-      const response = await fetch(capturedImage);
-      const blob = await response.blob();
-      const file = new File([blob], "camera-photo.jpg", { type: "image/jpeg" });
-
-      await handleFile(file);
-      stopCamera();
-    }
-  };
-
-  // const drawBoundingBoxes = (imageSrc, predictions) => {
-  //   const img = new Image();
-  //   img.src = imageSrc;
-  //   img.onload = () => {
-  //     const canvas = document.createElement("canvas");
-  //     const ctx = canvas.getContext("2d");
-  //     canvas.width = img.width;
-  //     canvas.height = img.height;
-  //     ctx.drawImage(img, 0, 0);
-
-  //     predictions.forEach((prediction) => {
-  //       const { x_center, y_center, width, height, class: classIndex } = prediction;
-  //       const x = x_center - width / 2;
-  //       const y = y_center - height / 2;
-
-  //       ctx.strokeStyle = "#2196f3";
-  //       ctx.lineWidth = 3;
-  //       ctx.strokeRect(x, y, width, height);
-
-  //       const label = labelMapping[classIndex] || "Unknown";
-
-  //       ctx.font = "bold 16px Roboto";
-  //       ctx.fillStyle = "#2196f3";
-  //       ctx.fillText(label, x, y > 20 ? y - 10 : y + height + 20);
-  //     });
-
-  //     setFinalImage(canvas.toDataURL());
-  //   };
-  // };
-
-  const parentFile = true;
-
-  // new draw bounding boxes that adds labelling of boxes
   const drawBoundingBoxes = (imageSrc, predictions) => {
     const img = new Image();
     img.src = imageSrc;
@@ -263,469 +175,122 @@ const ImageUploadForPrediction = ({
       canvas.height = img.height;
       ctx.drawImage(img, 0, 0);
 
-      predictions.forEach((prediction, index) => {
+      predictions.forEach((prediction) => {
         const {
           x_center,
           y_center,
           width,
           height,
-          pred_class: classIndex,
-          confidence,
+          class: classIndex,
         } = prediction;
+
+        // Calculate the top-left corner of the bounding box
         const x = x_center - width / 2;
         const y = y_center - height / 2;
 
         // Draw the bounding box
-        ctx.strokeStyle = "#39FF14";
+        ctx.strokeStyle = "yellow";
         ctx.lineWidth = 3;
         ctx.strokeRect(x, y, width, height);
 
-        const label = labelMapping[classIndex] || "Unknown";
-        const confidenceText = (confidence * 100).toFixed(1);
+        // Get the label for the class index (dynamic based on passed prop)
+        const label = labelMapping[classIndex] || "Unknown"; // Default to 'Unknown' if no label exists for the class
 
-        // Display label above or below the box
-        const labelText = `Box ${index + 1} - ${confidenceText}% ${label}`;
-
-        // Draw the label
-        ctx.font = "bold 16px Poppins";
-        ctx.fillStyle = "#ffffff";
-        ctx.fillText(labelText, x, y > 20 ? y - 10 : y + height + 20);
+        // Draw the label near the bounding box
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "red";
+        ctx.fillText(label, x, y > 10 ? y - 10 : 10); // Draw above the bounding box, adjust if near the top
       });
 
-      if (parentFile) {
-        setFinalImage(canvas.toDataURL());
-      } else {
-        resolve(canvas.toDataURL());
-      }
+      // Set the final image with bounding boxes and labels
+      setFinalImage(canvas.toDataURL()); // Save the final image to state
     };
   };
 
-  React.useEffect(() => {
-    if (predictionResult && imagePreview) {
-      drawBoundingBoxes(imagePreview, predictionResult.predictions);
-    }
-  }, [predictionResult, imagePreview]);
-
-  React.useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, []);
-
-  const ImagePreviewBox = ({ image, title }) => (
-    <Box>
-      <Typography variant="h6" gutterBottom>
-        {title}
-      </Typography>
-      <Paper
-        elevation={2}
-        sx={{
-          p: 1,
-          bgcolor: "grey.50",
-          borderRadius: 2,
-          overflow: "hidden",
-          height: IMAGE_PREVIEW_HEIGHT,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <img
-          src={image}
-          alt={title}
-          style={{
-            maxWidth: "100%",
-            maxHeight: "100%",
-            objectFit: "contain",
-            borderRadius: 8,
-          }}
-        />
-      </Paper>
-    </Box>
-  );
+  // If prediction result is available, draw the bounding boxes on the image
+  if (predictionResult && imagePreview) {
+    drawBoundingBoxes(imagePreview, predictionResult.predictions);
+  }
 
   return (
-    <>
-      <Card elevation={3} sx={{ width: "100%" }}>
-        <CardHeader
-          title="Dental Image Analysis"
-          subheader="Upload or capture an image of your teeth for AI analysis"
-          sx={{ textAlign: "center" }}
-        />
-        <CardContent>
-          <Stack spacing={3}>
-            {/* Upload Area */}
-            <Paper
-              {...getRootProps()}
-              elevation={0}
-              sx={{
-                border: "2px dashed",
-                borderColor: isDragActive ? "primary.main" : "grey.300",
-                borderRadius: 2,
-                p: 3,
-                bgcolor: isDragActive ? "primary.50" : "background.paper",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-                "&:hover": {
-                  borderColor: "primary.main",
-                  bgcolor: "primary.50",
-                },
-              }}
-            >
-              <input {...getInputProps()} />
-              <Box sx={{ textAlign: "center" }}>
-                <CloudUploadIcon
-                  sx={{ fontSize: 48, color: "primary.main", mb: 2 }}
-                />
-                {uploading ? (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 2,
-                    }}
-                  >
-                    <CircularProgress size={24} />
-                    <Typography>Analyzing your image...</Typography>
-                    <LinearProgress
-                      sx={{ width: "100%", maxWidth: 300, mx: "auto" }}
-                    />
-                  </Box>
-                ) : (
-                  <>
-                    <Typography variant="h6" gutterBottom>
-                      Drag & drop your image here
-                    </Typography>
-                    <Typography color="textSecondary" gutterBottom>
-                      or
-                    </Typography>
-                    <Stack direction="row" spacing={2} justifyContent="center">
-                      <Button
-                        variant="contained"
-                        startIcon={<CloudUploadIcon />}
-                        component="span"
-                      >
-                        Choose File
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        startIcon={<PhotoCameraIcon />}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startCamera();
-                        }}
-                      >
-                        Take Photo
-                      </Button>
-                    </Stack>
-                    <Typography
-                      variant="caption"
-                      color="textSecondary"
-                      sx={{ mt: 2, display: "block" }}
-                    >
-                      Accepts JPEG, PNG, GIF (max 2MB)
-                    </Typography>
-                  </>
-                )}
-              </Box>
-            </Paper>
-
-            {/* Error Message */}
-            {error && (
-              <Alert
-                severity="error"
-                icon={<ErrorIcon />}
-                sx={{ width: "100%" }}
-              >
-                {error}
-              </Alert>
-            )}
-
-            {predictionResult && originalImagePathWithHostURL && (
-              <SaveResultsButton
-                imagePathWithHostURL={originalImagePathWithHostURL}
-                drawBoundingBox={drawBoundingBoxes}
-                predictionResult={predictionResult}
-                onSave={updateOralHistory}
-              />
-            )}
-
-            {/* Image Previews */}
-            {imagePreview && (
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <ImagePreviewBox
-                    image={imagePreview}
-                    title="Original Image"
-                  />
-                </Grid>
-                {finalImage && (
-                  <Grid item xs={12} md={6}>
-                    <ImagePreviewBox
-                      image={finalImage}
-                      title="Analysis Results"
-                    />
-                  </Grid>
-                )}
-              </Grid>
-            )}
-
-            {/* Analysis Results */}
-            {predictionResult && (
-              <Box sx={{ mt: 2 }}>
-                <Stack spacing={1}>
-                  {Object.entries(
-                    groupPredictions(predictionResult.predictions)
-                  ).map(([className, predictions]) => (
-                    <Accordion
-                      key={className}
-                      defaultExpanded
-                      sx={{
-                        "&.MuiAccordion-root": {
-                          borderRadius: 1,
-                          "&:before": {
-                            display: "none",
-                          },
-                        },
-                      }}
-                    >
-                      <AccordionSummary
-                        expandIcon={<ExpandMoreIcon />}
-                        sx={{
-                          bgcolor: "primary.50",
-                          "&:hover": { bgcolor: "primary.100" },
-                          borderRadius: "4px 4px 0 0",
-                        }}
-                      >
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          alignItems="center"
-                          width="100%"
-                        >
-                          <Typography
-                            variant="subtitle1"
-                            sx={{ fontWeight: "medium" }}
-                          >
-                            {className}
-                          </Typography>
-                          <Chip
-                            size="small"
-                            label={predictions.length}
-                            color="primary"
-                            sx={{ ml: "auto", mr: 2 }}
-                          />
-                        </Stack>
-                      </AccordionSummary>
-                      <AccordionDetails sx={{ bgcolor: "background.paper" }}>
-                        <Stack spacing={1.5}>
-                          {predictions.map((prediction, idx) => (
-                            <Stack
-                              key={idx}
-                              direction="row"
-                              spacing={2}
-                              alignItems="center"
-                              sx={{
-                                pl: 1,
-                                py: 0.5,
-                                "&:hover": { bgcolor: "action.hover" },
-                                borderRadius: 1,
-                              }}
-                            >
-                              <CircleIcon
-                                sx={{ fontSize: 8, color: "primary.main" }}
-                              />
-                              <Typography
-                                variant="body2"
-                                sx={{ fontWeight: "medium" }}
-                              >
-                                Box {idx + 1} -{" "}
-                                {(prediction.confidence * 100).toFixed(1)}%{" "}
-                                {className}
-                              </Typography>
-                              {prediction.location && (
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                >
-                                  Location: {prediction.location}
-                                </Typography>
-                              )}
-                            </Stack>
-                          ))}
-                        </Stack>
-                      </AccordionDetails>
-                    </Accordion>
-                  ))}
-                </Stack>
-              </Box>
-            )}
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {/* Camera Dialog */}
-      <Dialog
-        open={isCameraOpen}
-        onClose={stopCamera}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-          },
+    <div>
+      <div
+        {...getRootProps()}
+        style={{
+          border: "2px dashed #ccc",
+          padding: "20px",
+          textAlign: "center",
+          cursor: "pointer",
         }}
       >
-        <DialogTitle>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Typography variant="h6">
-              {capturedImage ? "Preview Photo" : "Take Photo"}
+        <input {...getInputProps()} />
+        {uploading ? (
+          <CircularProgress />
+        ) : (
+          <Typography>
+            Drag & drop an image, or click to select a file
+          </Typography>
+        )}
+      </div>
+
+      {error && <Typography color="error">{error}</Typography>}
+
+      {imagePreview && (
+        <div
+          style={{
+            marginTop: "20px",
+            maxWidth: "300px",
+            borderRadius: "8px",
+            overflow: "hidden",
+          }}
+        >
+          <img
+            src={imagePreview}
+            alt="Uploaded preview"
+            style={{ width: "100%", height: "auto", borderRadius: "8px" }}
+          />
+        </div>
+      )}
+
+      {predictionResult && (
+        <div>
+          <Typography variant="h6">Prediction Result:</Typography>
+          {predictionResult.predictions &&
+            predictionResult.predictions.length > 0 && (
+              <ul>
+                {predictionResult.predictions.map((prediction, index) => (
+                  <li key={index}>
+                    {labelMapping[prediction.class] || "Unknown"}
+                  </li>
+                ))}
+              </ul>
+            )}
+
+          {/* Display final image with bounding boxes and labels */}
+          <div>
+            <Typography variant="body1">
+              Detected Image with Bounding Boxes:
             </Typography>
-            <IconButton
-              onClick={stopCamera}
-              size="small"
-              sx={{
-                "&:hover": {
-                  bgcolor: "error.light",
-                  color: "error.contrastText",
-                },
-              }}
-            >
-              <CloseIcon />
-            </IconButton>
-          </Box>
-        </DialogTitle>
-
-        <DialogContent
-          sx={{
-            p: 0,
-            position: "relative",
-            display: "flex",
-            justifyContent: "center",
-            minHeight: IMAGE_PREVIEW_HEIGHT,
-            bgcolor: "grey.50",
-          }}
-        >
-          {cameraError ? (
-            <Alert
-              severity="error"
-              sx={{
-                m: 2,
-                width: "100%",
-                maxWidth: 500,
-              }}
-            >
-              {cameraError}
-            </Alert>
-          ) : capturedImage ? (
-            // Show captured image preview
-            <Box
-              sx={{
-                width: "100%",
-                height: IMAGE_PREVIEW_HEIGHT,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                p: 2,
-              }}
-            >
-              <img
-                src={capturedImage}
-                alt="Captured"
+            {finalImage && (
+              <div
                 style={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                  objectFit: "contain",
-                  borderRadius: 8,
-                }}
-              />
-            </Box>
-          ) : (
-            // Show live camera feed
-            <Box
-              sx={{
-                width: "100%",
-                height: IMAGE_PREVIEW_HEIGHT,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                p: 2,
-              }}
-            >
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "100%",
-                  objectFit: "contain",
-                  borderRadius: 8,
-                }}
-              />
-              <canvas ref={canvasRef} style={{ display: "none" }} />
-            </Box>
-          )}
-        </DialogContent>
-
-        <DialogActions
-          sx={{
-            justifyContent: "center",
-            p: 2,
-            bgcolor: "background.paper",
-            borderTop: 1,
-            borderColor: "divider",
-          }}
-        >
-          {capturedImage ? (
-            <Stack direction="row" spacing={2}>
-              <Button
-                variant="outlined"
-                onClick={retakePhoto}
-                startIcon={<ReplayIcon />}
-                sx={{
-                  "&:hover": {
-                    bgcolor: "error.lighter",
-                  },
+                  marginTop: "20px",
+                  maxWidth: "300px",
+                  borderRadius: "8px",
+                  overflow: "hidden",
                 }}
               >
-                Retake
-              </Button>
-              <Button
-                variant="contained"
-                onClick={acceptPhoto}
-                startIcon={<CheckIcon />}
-                color="success"
-              >
-                Use Photo
-              </Button>
-            </Stack>
-          ) : (
-            <Button
-              variant="contained"
-              onClick={capturePhoto}
-              startIcon={<PhotoCameraIcon />}
-              sx={{
-                px: 4,
-                py: 1,
-                borderRadius: 2,
-              }}
-            >
-              Take Photo
-            </Button>
-          )}
-        </DialogActions>
-      </Dialog>
-    </>
+                <img
+                  src={finalImage}
+                  alt="Prediction result with bounding boxes and labels"
+                  style={{ width: "100%", height: "auto", borderRadius: "8px" }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
