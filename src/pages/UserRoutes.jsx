@@ -62,6 +62,12 @@ function UserRoutes() {
       lead here. (unupdated as of 12 jan 2025) */}
       <Route path="/dashboard-old" element={<Dashboard />} />
 
+      <Route path="/acne-health/analyse" element={<AcnemodelPredict />} />
+      <Route path="/acne-health/chatbot" element={<ChatBot />} />
+      <Route
+        path="/acne-health/analysis-history"
+        element={<AnalysisHistory />} />
+
 
 
       {/* <Route path="/register" element={<Register />} /> */}

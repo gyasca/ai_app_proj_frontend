@@ -30,7 +30,7 @@ const HealthDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* NavBar */}
-      <Box className="bg-white border-b border-gray-200 fixed w-full top-0 z-50">
+      {/* <Box className="bg-white border-b border-gray-200 fixed w-full top-0 z-50">
         <Box className="max-w-7xl mx-auto px-4">
           <Box className="flex justify-between h-16">
             <Box className="flex items-center">
@@ -77,7 +77,7 @@ const HealthDashboard = () => {
             </Box>
           </Box>
         </Box>
-      </Box>
+      </Box> */}
 
       {/* Main Dashboard Content */}
       <Box className="pt-20 pb-8">

@@ -233,9 +233,57 @@ export function Navbar() {
                         LinkComponent={Link}
                         variant="text"
                         color="inherit"
-                        to="/food"
+                        to="/chatbot"
                       >
                         Chatbot
+                      </Button>
+                    </Stack>
+
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ display: ["none", "none", "flex"] }}
+                    >
+                      <Button
+                        startIcon={<DashboardIcon />}
+                        LinkComponent={Link}
+                        variant="text"
+                        color="inherit"
+                        to="/acne-health/analyse"
+                      >
+                        Skincare analysis
+                      </Button>
+                    </Stack>
+
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ display: ["none", "none", "flex"] }}
+                    >
+                      <Button
+                        startIcon={<DashboardIcon />}
+                        LinkComponent={Link}
+                        variant="text"
+                        color="inherit"
+                        to="/disease-prediction/analyse"
+                      >
+                        Disease Prediction
+                      </Button>
+                    </Stack>
+
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ display: ["none", "none", "flex"] }}
+                    >
+                      <Button
+                        startIcon={<DashboardIcon />}
+                        LinkComponent={Link}
+                        variant="text"
+                        color="inherit"
+                        to="/metrics"
+                      >
+                        Food metrics
                       </Button>
                     </Stack>
 
