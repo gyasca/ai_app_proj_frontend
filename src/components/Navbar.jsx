@@ -15,6 +15,8 @@ import {
   Drawer,
   Stack,
   Button,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
@@ -33,7 +35,15 @@ export function Navbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isAdminDrawerOpen, setIsAdminDrawerOpen] = useState(false);
   const { user, isAdminPage } = useContext(UserContext);
-  const [userData, setUserData] = useState(null);
+  const [foodMenuAnchor, setFoodMenuAnchor] = useState(null);
+
+  const handleFoodMenuOpen = (event) => {
+    setFoodMenuAnchor(event.currentTarget);
+  };
+
+  const handleFoodMenuClose = () => {
+    setFoodMenuAnchor(null);
+  };
 
   return (
     <>
@@ -97,8 +107,6 @@ export function Navbar() {
                 >
                   HEALTHBUDDY
                 </Button>
-
-                {/* <Button color="inherit" variant="text" LinkComponent={Link} to="/" sx={{ marginRight: "1rem", fontFamily: "'caveat brush'", textTransform: "none", fontSize: "18px", padding: "0" }}>EnviroGo</Button> */}
                 <Divider
                   orientation="vertical"
                   flexItem
@@ -140,86 +148,8 @@ export function Navbar() {
                         Health Dashboard
                       </Button>
                     </Stack>
-                    {/* <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
-                      <Button
-                        startIcon={<AccountTreeIcon />}
-                        LinkComponent={Link}
-                        variant="text"
-                        color="inherit"
-                        to="/competence-map"
-                      >
-                        Competence Map
-                      </Button>
-                    </Stack> */}
 
-                    {/* <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
-                      <Button
-                        startIcon={<HomeIcon />}
-                        LinkComponent={Link}
-                        variant="text"
-                        color="inherit"
-                        to="/test1"
-                      >
-                        Test 1
-                      </Button>
-                    </Stack> */}
-
-                    {/* <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
-                      <Button
-                        startIcon={<HomeIcon />}
-                        LinkComponent={Link}
-                        variant="text"
-                        color="inherit"
-                        to="/skillmapspecial"
-                      >
-                        Skillmap special
-                      </Button>
-                    </Stack> */}
-
-                    {/* <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
-                      <Button
-                        startIcon={<HomeIcon />}
-                        LinkComponent={Link}
-                        variant="text"
-                        color="inherit"
-                        to="/map"
-                      >
-                        Basic modules list
-                      </Button>
-                    </Stack> */}
-
-                    {/* <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
-                      <Button
-                        startIcon={<GradeIcon />}
-                        LinkComponent={Link}
-                        variant="text"
-                        color="inherit"
-                        to="/certificates"
-                      >
-                        Certificates
-                      </Button>
-                    </Stack> */}
-
+                    {/* Food Dropdown */}
                     <Stack
                       spacing={2}
                       direction="row"
@@ -227,31 +157,42 @@ export function Navbar() {
                     >
                       <Button
                         startIcon={<DashboardIcon />}
-                        LinkComponent={Link}
-                        variant="text"
                         color="inherit"
-                        to="/food"
+                        onClick={handleFoodMenuOpen}
+                        variant="text"
                       >
-                        Food Scan
+                        Food
                       </Button>
+                      <Menu
+                        anchorEl={foodMenuAnchor}
+                        open={Boolean(foodMenuAnchor)}
+                        onClose={handleFoodMenuClose}
+                      >
+                        <MenuItem
+                          component={Link}
+                          to="/food"
+                          onClick={handleFoodMenuClose}
+                        >
+                          Food Scan
+                        </MenuItem>
+                        <MenuItem
+                          component={Link}
+                          to="/chatbot"
+                          onClick={handleFoodMenuClose}
+                        >
+                          Food Chatbot
+                        </MenuItem>
+                        <MenuItem
+                          component={Link}
+                          to="/food/metrics"
+                          onClick={handleFoodMenuClose}
+                        >
+                          Food Metrics
+                        </MenuItem>
+                      </Menu>
                     </Stack>
 
-                    <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
-                      <Button
-                        startIcon={<DashboardIcon />}
-                        LinkComponent={Link}
-                        variant="text"
-                        color="inherit"
-                        to="/chatbot"
-                      >
-                        Food Chatbot
-                      </Button>
-                    </Stack>
-
+                    {/* Other Links */}
                     <Stack
                       spacing={2}
                       direction="row"
@@ -264,15 +205,8 @@ export function Navbar() {
                         color="inherit"
                         to="/acne-health/analyse"
                       >
-                        Skincare analysis
+                        Skincare Analysis
                       </Button>
-                    </Stack>
-
-                    <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
                       <Button
                         startIcon={<DashboardIcon />}
                         LinkComponent={Link}
@@ -282,29 +216,6 @@ export function Navbar() {
                       >
                         Disease Prediction
                       </Button>
-                    </Stack>
-
-                    <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
-                      <Button
-                        startIcon={<DashboardIcon />}
-                        LinkComponent={Link}
-                        variant="text"
-                        color="inherit"
-                        to="/food/metrics"
-                      >
-                        Food metrics
-                      </Button>
-                    </Stack>
-
-                    <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ display: ["none", "none", "flex"] }}
-                    >
                       <Button
                         startIcon={<DashboardIcon />}
                         LinkComponent={Link}
@@ -329,164 +240,11 @@ export function Navbar() {
                   Login
                 </Button>
               )}
-              {user && (
-                <>
-                  <NavbarProfile />
-                </>
-              )}
+              {user && <NavbarProfile />}
             </Toolbar>
           </AppBar>
         </Container>
       )}
-      {isAdminPage && (
-        <AppBar position="sticky" sx={{ zIndex: 999, borderRadius: "0px" }}>
-          <Toolbar>
-            <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center" }}>
-              <IconButton
-                color="inherit"
-                sx={{ marginRight: "1rem", display: ["flex", "flex", "none"] }}
-                onClick={() => setIsAdminDrawerOpen(true)}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Button
-                LinkComponent={Link}
-                to="/"
-                sx={{
-                  padding: "0px",
-                  margin: "0px",
-                }}
-              >
-                <Box
-                  component="img"
-                  sx={{
-                    height: 50,
-                    width: 50,
-                    padding: "10px",
-                    borderRadius: "15px",
-                    maxHeight: { xs: 233, md: 167 },
-                    maxWidth: { xs: 350, md: 250 },
-                  }}
-                  alt="NYPSIT"
-                  src="/healthbuddylogo.png"
-                />
-              </Button>
-              <Button
-                color="inherit"
-                variant="text"
-                LinkComponent={Link}
-                to="/"
-                sx={{
-                  marginRight: "1rem",
-                  fontFamily: "'Righteous', cursive",
-                  textTransform: "none",
-                  fontSize: "20px",
-                  padding: "0",
-                }}
-              >
-                HEALTHBUDDY
-              </Button>
-              <Divider
-                orientation="vertical"
-                flexItem
-                sx={{ marginRight: "1rem" }}
-              />
-              <Typography
-                variant="h6"
-                component="div"
-                sx={{ marginRight: "1rem" }}
-              >
-                Admin Panel
-              </Typography>
-              <Divider
-                orientation="vertical"
-                flexItem
-                sx={{ marginRight: "1rem" }}
-              />
-
-              <Button
-                startIcon={<LogoutIcon />}
-                LinkComponent={Link}
-                variant="text"
-                color="inherit"
-                to="/"
-              >
-                Exit Admin Panel
-              </Button>
-            </Box>
-            {user && <NavbarProfile />}
-          </Toolbar>
-        </AppBar>
-      )}
-
-      <Drawer
-        anchor={"left"}
-        open={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      >
-        <List sx={{ width: "250px" }}>
-          <ListItem key={"Home"}>
-            <Typography fontWeight={700}>Health Buddy</Typography>
-          </ListItem>
-          <Divider sx={{ marginBottom: 1 }} />
-          <ListItem key={"Home"} disablePadding>
-            <ListItemButton
-              component={Link}
-              to="/"
-              onClick={() => setIsDrawerOpen(false)}
-            >
-              <ListItemIcon>
-                <HomeIcon />
-              </ListItemIcon>
-              <ListItemText primary={"Home"} />
-            </ListItemButton>
-          </ListItem>
-
-          {user && (
-            <>
-              <ListItem key={"Health Dashboard"} disablePadding>
-                <ListItemButton
-                  component={Link}
-                  to="/dashboard"
-                  onClick={() => setIsDrawerOpen(false)}
-                >
-                  <ListItemIcon>
-                    <AccountTreeIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={"Health Dashboard"} />
-                </ListItemButton>
-              </ListItem>
-
-              <ListItem key={"Portal"} disablePadding>
-                <ListItemButton
-                  component={Link}
-                  to="/studentportal"
-                  onClick={() => setIsDrawerOpen(false)}
-                >
-                  <ListItemIcon>
-                    <SchoolIcon />
-                  </ListItemIcon>
-                  <ListItemText primary={"Portal"} />
-                </ListItemButton>
-              </ListItem>
-            </>
-          )}
-        </List>
-      </Drawer>
-      <Drawer
-        anchor={"left"}
-        open={isAdminDrawerOpen}
-        onClose={() => setIsAdminDrawerOpen(false)}
-        variant="temporary"
-      >
-        <List sx={{ width: "250px" }}>
-          <ListItem key={"Home"}>
-            <Typography fontWeight={700}>Admin Navigation</Typography>
-          </ListItem>
-          <Divider sx={{ marginBottom: 1 }} />
-          <AdminNavList />
-        </List>
-      </Drawer>
     </>
   );
 }

@@ -146,7 +146,8 @@ export default function Identify() {
               </h2>
               <div className="flex justify-center">
                 <img
-                  src={`http://localhost:3001/runs/detect/predict2${foodData.image.replace('/uploads', '')}`}
+                  src={`http://localhost:3001/foodmodel/${foodData.image}`}
+                  // src={"http://localhost:3001/foodmodel/uploads/nasilemak.jpeg"}
                   alt="Uploaded Food"
                   className="w-64 h-64 object-cover rounded-md"
                 />
