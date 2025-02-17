@@ -79,7 +79,7 @@ export function Navbar() {
                       maxWidth: { xs: 350, md: 250 },
                     }}
                     alt="NYPSIT"
-                    src="/nyplogo.jpeg"
+                    src="/healthbuddylogo.png"
                   />
                 </Button>
                 <Button
@@ -368,7 +368,7 @@ export function Navbar() {
                     maxWidth: { xs: 350, md: 250 },
                   }}
                   alt="NYPSIT"
-                  src="/nyplogo.jpeg"
+                  src="/healthbuddylogo.png"
                 />
               </Button>
               <Button
@@ -384,7 +384,7 @@ export function Navbar() {
                   padding: "0",
                 }}
               >
-                H-BUDDY
+                HEALTHBUDDY
               </Button>
               <Divider
                 orientation="vertical"
