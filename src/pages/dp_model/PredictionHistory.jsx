@@ -34,7 +34,7 @@ function PredictionHistory() {
     const fetchPredictionHistory = async () => {
       try {
         const response = await fetch(`http://localhost:3001/dpmodel/history/${userId}`);
-        
+        console.log(response);
         if (!response.ok) {
           throw new Error('Failed to fetch prediction history');
         }

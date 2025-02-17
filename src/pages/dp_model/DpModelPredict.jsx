@@ -21,6 +21,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recha
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import http from "../../http"
+import useUser from "../../context/useUser";
 
 
 function FormComponent() {
@@ -38,6 +39,10 @@ function FormComponent() {
     currentSmoker: "",
     cigsPerDay: "",
   });
+
+  const {user,jwtUser}=useUser();
+
+  const userIdToPost = jwtUser();
 
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -251,6 +256,7 @@ const generatePDFReport = async () => {
   
       const requestData = {
         data: [{
+          user_id: userIdToPost,
           gender: String(formData.gender),
           age: String(formData.age),
           currentSmoker: String(formData.currentSmoker),
