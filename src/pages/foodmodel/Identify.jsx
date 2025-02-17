@@ -1,10 +1,11 @@
+// Identify.js
 import { useState } from "react";
 import axios from "axios";
 import IngredientCard from "./IngredientCard";
 import { Tab, Tabs, Box } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 
-export default function Food() {
+export default function Identify() {
   const [image, setImage] = useState(null);
   const [foodData, setFoodData] = useState(null);
   const [ingredients, setIngredients] = useState([]);
@@ -39,7 +40,10 @@ export default function Food() {
       const { name, image: foodImage, ingredients } = response.data;
 
       setFoodData({ name, image: foodImage });
-      setIngredients(ingredients); // Directly set as it is already an array
+      setIngredients(ingredients.map((ingredient) => ({
+        ...ingredient,
+        quantity: ingredient.quantity || 1,
+      })));
     } catch (error) {
       console.error("Error detecting food:", error);
       alert("An error occurred while processing the image.");
@@ -48,18 +52,10 @@ export default function Food() {
     }
   };
 
-  const incrementIngredient = (index) => {
+  const handleQuantityChange = (index, newQuantity) => {
     setIngredients((prev) => {
       const updated = [...prev];
-      updated[index].quantity = (updated[index].quantity || 0) + 1;
-      return updated;
-    });
-  };
-
-  const decrementIngredient = (index) => {
-    setIngredients((prev) => {
-      const updated = [...prev];
-      updated[index].quantity = Math.max((updated[index].quantity || 0) - 1, 0);
+      updated[index].quantity = newQuantity;
       return updated;
     });
   };
@@ -73,31 +69,28 @@ export default function Food() {
       alert("No food data or ingredients to save!");
       return;
     }
-  
-    setLoading(true); // Show loading state while saving
+
+    setLoading(true);
     const foodScanData = {
       food_name: foodData.name,
       food_image: foodData.image,
-      ingredients: JSON.stringify(ingredients), // Backend expects ingredients as JSON string
-      user_id: 1, // Replace with the actual logged-in user ID
+      ingredients: JSON.stringify(ingredients),
+      user_id: 1,
     };
-  
+
     try {
-      console.log("[INFO] Sending data to the backend:", foodScanData);
-  
       const response = await axios.post(
         "http://localhost:3001/foodmodel/api/foodscan",
         foodScanData,
         { headers: { "Content-Type": "application/json" } }
       );
-  
-      console.log("[INFO] Response from backend:", response.data);
+
       alert("Ingredients saved successfully!");
     } catch (error) {
-      console.error("[ERROR] Error saving FoodScan:", error.response?.data || error.message);
+      console.error("Error saving FoodScan:", error.response?.data || error.message);
       alert("An error occurred while saving the ingredients.");
     } finally {
-      setLoading(false); // Hide loading state
+      setLoading(false);
     }
   };
 
@@ -147,21 +140,19 @@ export default function Food() {
           </form>
         ) : (
           <div className="flex">
-            {/* Left half: Food name and image */}
             <div className="w-1/2 pr-4 border-r border-gray-300">
               <h2 className="text-xl font-semibold text-center mb-4">
                 Dish Name: {foodData.name}
               </h2>
               <div className="flex justify-center">
                 <img
-                  src={`http://localhost:3001${foodData.image}`}
+                  src={`http://localhost:3001/runs/detect/predict2${foodData.image.replace('/uploads', '')}`}
                   alt="Uploaded Food"
                   className="w-64 h-64 object-cover rounded-md"
                 />
               </div>
             </div>
 
-            {/* Right half: Ingredients list */}
             <div className="w-1/2 pl-4 flex flex-col">
               <h2 className="text-xl font-semibold text-center mb-4">
                 Ingredients
@@ -178,8 +169,7 @@ export default function Food() {
                         <IngredientCard
                           key={index}
                           ingredient={ingredient}
-                          onIncrement={() => incrementIngredient(index)}
-                          onDecrement={() => decrementIngredient(index)}
+                          onQuantityChange={(newQuantity) => handleQuantityChange(index, newQuantity)}
                           onRemove={() => removeIngredient(index)}
                         />
                       ))}
