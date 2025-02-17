@@ -44,9 +44,9 @@ const ChatBot = () => {
 
             setMessages((prev) => [
                 ...prev,
-                { from: "bot", text: botResponse },
-                { from: "bot", text: `API URL: ${apiUrl}` },
-                { from: "bot", text: `API Response: ${JSON.stringify(apiResult, null, 2)}` },
+                { from: "bot", text: botResponse }
+                // { from: "bot", text: `API URL: ${apiUrl}` },
+                // { from: "bot", text: `API Response: ${JSON.stringify(apiResult, null, 2)}` },
             ]);
         } catch (error) {
             console.error("Error during API call:", error.response?.data || error.message);
