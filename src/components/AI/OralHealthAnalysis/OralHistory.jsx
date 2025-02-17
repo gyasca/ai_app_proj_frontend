@@ -345,14 +345,14 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
       >
         <DialogTitle>Image with Bounding Boxes</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText sx={{ mb: 1 }}>
             Click outside the image or press close to exit the preview.
           </DialogContentText>
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             <img
               src={selectedImage}
               alt="Enlarged View"
-              style={{ maxWidth: "100%", height: "auto" }}
+              style={{ maxWidth: "100%", height: "auto", borderRadius: "20px", mt: 2 }}
             />
           </Box>
         </DialogContent>

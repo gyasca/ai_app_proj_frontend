@@ -350,8 +350,8 @@ const ImageUploadForPrediction = ({
     <>
       <Card elevation={3} sx={{ width: "100%" }}>
         <CardHeader
-          title="Dental Image Analysis"
-          subheader="Upload or capture an image of your teeth for AI analysis"
+          title="Oral Condition Detector"
+          subheader="Upload or capture an image of your teeth/gum/mouth for AI analysis"
           sx={{ textAlign: "center" }}
         />
         <CardContent>

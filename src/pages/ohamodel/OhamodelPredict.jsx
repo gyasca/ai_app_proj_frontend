@@ -3,6 +3,16 @@ import ImageUploadForPredictionGregory from "../../components/AI/OralHealthAnaly
 import OralHistory from "../../components/AI/OralHealthAnalysis/OralHistory";
 import useUser from "../../context/useUser";
 import Chatbot from "../../components/AI/OralHealthAnalysis/Chatbot";
+import {
+  Box,
+  Typography,
+  Paper,
+  Grid,
+  Button,
+  Card,
+  CardContent,
+  Container,
+} from "@mui/material";
 
 function OhamodelPredict() {
   const [oralHistory, setOralHistory] = useState([]);
@@ -42,25 +52,45 @@ function OhamodelPredict() {
   }, [oralHistory]);
 
   return (
-    <>
+    <Container
+      sx={{
+        width: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+        mt: 2,
+      }}
+    >
+      {/* Header Card - Full Width */}
+
+      <Card className="shadow-sm hover:shadow-md transition-shadow" sx={{ mb: 2 }}>
+        <CardContent className="p-6">
+          <Box className="flex flex-col">
+            <Typography variant="h5" className="font-semibold">
+              Oral Analysis
+            </Typography>
+            <Typography variant="body2" color="textSecondary">
+              AI-Powered Oral Condition Diagnosis
+            </Typography>
+          </Box>
+        </CardContent>
+      </Card>
+
       <ImageUploadForPredictionGregory
         modelRoute={"/ohamodel/predict"}
         labelMapping={labelMapping}
         updateOralHistory={updateOralHistory}
       />
-
       <OralHistory
         refreshTrigger={oralHistory}
         labelMapping={labelMapping}
         jwtUserId={jwtUser()}
       />
-
       <Chatbot
         singleOralResult={oralHistory}
         labelMapping={labelMapping}
         jwtUserId={jwtUser()}
       />
-    </>
+    </Container>
   );
 }
 
