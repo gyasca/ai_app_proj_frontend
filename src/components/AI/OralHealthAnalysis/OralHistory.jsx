@@ -75,12 +75,13 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
   const [error, setError] = useState(null);
   const [selectedRows, setSelectedRows] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
-    console.log(jwtUserId);
     if (jwtUserId) {
       fetchOralHistory(jwtUserId);
     } else {
@@ -132,51 +133,41 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
     }
   };
 
-  //   const fetchOralHistory = async (userId) => {
-  //     try {
-  //       const response = await http.get("/history/oha/get-history", {
-  //         params: { user_id: userId },
-  //       });
-
-  //       const historyWithImages = await Promise.all(
-  //         response.data.history.map(async (item) => {
-  //           if (item.predictions) {
-  //             const imageWithBoundingBoxes = await drawBoundingBoxes(
-  //               item.original_image_path,
-  //               item.predictions,
-  //               labelMapping
-  //             );
-  //             return {
-  //               ...item,
-  //               image_with_bounding_boxes: imageWithBoundingBoxes,
-  //             };
-  //           }
-  //           return item;
-  //         })
-  //       );
-
-  //       setOralHistory(historyWithImages);
-  //       setIsLoading(false);
-  //     } catch (err) {
-  //       setError("Failed to fetch oral health history");
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  const handleDelete = async (ids) => {
+  const handleDelete = async () => {
     try {
+      // Check if there are selected rows
+      if (selectedRows.length === 0) {
+        alert("No records selected for deletion");
+        return;
+      }
+
+      // Delete each selected record
       await Promise.all(
-        ids.map((id) =>
-          http.delete(`/history/oha/delete-result`, { params: { id: id } })
+        selectedRows.map((id) =>
+          http.delete(`/history/oha/delete-result`, { params: { id } })
         )
       );
-      setOralHistory((prev) => prev.filter((item) => !ids.includes(item.id)));
-      setSelectedRows([]);
+
+      // Update the oralHistory state to remove deleted records
+      setOralHistory((prev) =>
+        prev.filter((item) => !selectedRows.includes(item.id))
+      );
+      setSelectedRows([]); // Clear selected rows
+      setDeleteDialogOpen(false); // Close the dialog
     } catch (err) {
       console.error("Failed to delete records", err);
-    } finally {
-      setDeleteDialogOpen(false);
+      alert("Error deleting records");
     }
+  };
+
+  const handleDialogOpen = (imageSrc) => {
+    setSelectedImage(imageSrc);
+    setDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+    setSelectedImage(null);
   };
 
   const columns = [
@@ -195,6 +186,11 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
               src={image_with_bounding_boxes || original_image_path}
               alt="Oral Health"
               style={{ maxWidth: "50%", height: "50%", borderRadius: "8px" }}
+              onClick={() =>
+                handleDialogOpen(
+                  image_with_bounding_boxes || original_image_path
+                )
+              }
             />
           </Box>
         );
@@ -206,7 +202,16 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
       width: 150,
       renderCell: (params) => (
         <>
-          <IconButton onClick={() => console.log("View record")} size="small">
+          <IconButton
+            onClick={() => {
+              const imageSrc =
+                params.row.image_with_bounding_boxes ||
+                params.row.original_image_path;
+              setSelectedImage(imageSrc); // Set the image to show in the dialog
+              setDialogOpen(true); // Open the dialog
+            }}
+            size="small"
+          >
             <Visibility />
           </IconButton>
           <IconButton
@@ -223,7 +228,6 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
     },
   ];
 
-  // Prepare data for the charts
   const chartData = oralHistory.map((item, index) => ({
     scan: index + 1,
     conditionCount: item.condition_count,
@@ -271,7 +275,23 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
   }
 
   return (
-    <Paper sx={{ padding: 2, marginTop: 2 }}>
+    <Paper sx={{ padding: 2, marginTop: 2, position: "relative" }}>
+      {selectedRows.length > 0 && (
+        <Button
+          variant="contained"
+          color="error"
+          startIcon={<Delete />}
+          sx={{
+            position: "absolute",
+            top: 16, // Adjust top margin for better visibility
+            right: 16, // Adjust right margin
+            zIndex: 1, // Ensure it's above other content
+          }}
+          onClick={() => setDeleteDialogOpen(true)}
+        >
+          Delete Selected
+        </Button>
+      )}
       <Typography variant="h4" sx={{ marginBottom: 2 }}>
         Oral Health History
       </Typography>
@@ -285,22 +305,15 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
             columns={columns}
             pageSize={5}
             checkboxSelection
-            onRowSelectionModelChange={(ids) => setSelectedRows(ids)}
+            onRowSelectionModelChange={(newSelectionModel) => {
+              console.log("New selection:", newSelectionModel); // Debug line
+              setSelectedRows(newSelectionModel);
+            }}
+            rowSelectionModel={selectedRows}
             rowsPerPageOptions={[5, 10, 20]}
             getRowId={(row) => row.id}
           />
         </Box>
-      )}
-      {selectedRows.length > 0 && (
-        <Button
-          variant="contained"
-          color="error"
-          startIcon={<Delete />}
-          sx={{ mt: 2 }}
-          onClick={() => setDeleteDialogOpen(true)}
-        >
-          Delete Selected
-        </Button>
       )}
 
       {/* Delete Confirmation Dialog */}
@@ -317,9 +330,34 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
-          <Button color="error" onClick={() => handleDelete(selectedRows)}>
+          <Button color="error" onClick={handleDelete}>
             Delete
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Image Preview Dialog */}
+      <Dialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>Image with Bounding Boxes</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Click outside the image or press close to exit the preview.
+          </DialogContentText>
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <img
+              src={selectedImage}
+              alt="Enlarged View"
+              style={{ maxWidth: "100%", height: "auto" }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose}>Close</Button>
         </DialogActions>
       </Dialog>
 
