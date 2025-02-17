@@ -34,9 +34,9 @@ import { grey } from "@mui/material/colors";
 import { Navbar } from "./components/Navbar";
 import { Box } from "@mui/material";
 import { SnackbarProvider } from "notistack";
-import { Footer } from "./components/Footer";
 import { jwtDecode } from "jwt-decode";
 import http from "./http";
+import { Footer } from "./components/Footer";
 
 // OAuth Google
 import { GoogleOAuthProvider } from "@react-oauth/google";
@@ -239,6 +239,7 @@ function MainApp() {
             </Routes>
           </Box>
           {/* <Footer /> */}
+          <Footer />
         </Box>
       </UserContext.Provider>
     </>

@@ -1,11 +1,13 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Box,
   Button,
   Grid,
-  Typography,
   Paper,
   IconButton,
+  Card,
+  CardContent,
+  Typography,
 } from "@mui/material";
 import {
   ChevronRight,
@@ -22,10 +24,50 @@ import {
 } from "lucide-react";
 import { UserContext } from "../main";
 import { Link } from "react-router-dom";
+import AdminPageTitle from "../components/AdminPageTitle";
+import http from "../http";
+import useUser from "../context/useUser";
 
 const HealthDashboard = () => {
   // Assuming UserContext provides user data
   const { user } = useContext(UserContext);
+  const { jwtUser } = useUser();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [scanHistory, setScanHistory] = useState([]);
+
+  useEffect(() => {
+    const fetchScanHistory = async (userId) => {
+      setIsLoading(true);
+      try {
+        const response = await http.get("/history/oha/get-history", {
+          params: { user_id: jwtUser() },
+        });
+
+        if (response.status === 200 && response.data.history.length === 0) {
+          console.warn("No history records found");
+          setScanHistory([]); // Ensure the UI still renders
+          return;
+        }
+
+        // Get the last 3 scans
+        const recentScans = response.data.history.slice(-3).reverse();
+
+        setScanHistory(recentScans); // Directly use the history data without bounding boxes
+      } catch (err) {
+        if (err.response && err.response.status === 404) {
+          console.warn("No records found for this user.");
+          setScanHistory([]);
+        } else {
+          setError("Failed to fetch oral health history");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchScanHistory();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -80,8 +122,8 @@ const HealthDashboard = () => {
       </Box> */}
 
       {/* Main Dashboard Content */}
-      <Box className="pt-20 pb-8">
-        <Box className="max-w-2xl mx-auto p-6 bg-white rounded-xl">
+      <Box className="pt-5 pb-8">
+        <Box sx={{ width: "95%", margin: "0 auto", pt: 0, pb: 0 }}>
           <Box className="flex justify-between items-center mb-8">
             <Box>
               <Typography variant="h5" className="font-semibold">
@@ -105,7 +147,7 @@ const HealthDashboard = () => {
             </Box>
 
             <Grid container spacing={4} mb={6}>
-              <Grid item xs={4} className="text-center">
+              <Grid item xs={3} className="text-center">
                 <Box className="w-16 h-16 rounded-full bg-green-100 mx-auto mb-2 flex items-center justify-center">
                   <Typography variant="h6" className="font-semibold">
                     85%
@@ -115,7 +157,7 @@ const HealthDashboard = () => {
                   Food Analysis
                 </Typography>
               </Grid>
-              <Grid item xs={4} className="text-center">
+              <Grid item xs={3} className="text-center">
                 <Box className="w-16 h-16 rounded-full bg-blue-100 mx-auto mb-2 flex items-center justify-center">
                   <Typography variant="h6" className="font-semibold">
                     92%
@@ -125,7 +167,7 @@ const HealthDashboard = () => {
                   Activity Score
                 </Typography>
               </Grid>
-              <Grid item xs={4} className="text-center">
+              <Grid item xs={3} className="text-center">
                 <Box className="w-16 h-16 rounded-full bg-purple-100 mx-auto mb-2 flex items-center justify-center">
                   <Typography variant="h6" className="font-semibold">
                     78%
@@ -136,6 +178,31 @@ const HealthDashboard = () => {
                 </Typography>
               </Grid>
               {/* /oral-health/analyse */}
+              <Grid item xs={3} className="text-center">
+                {scanHistory.length > 0 ? (
+                  // Display only the latest scan
+                  <Box
+                    key={scanHistory[scanHistory.length - 1].analysis_date}
+                    sx={{ mb: 2 }}
+                  >
+                    <Box className="w-16 h-16 rounded-full bg-purple-100 mx-auto mb-2 flex items-center justify-center">
+                      <Typography variant="h6" className="font-semibold">
+                        {scanHistory[scanHistory.length - 1].predictions.length}
+                      </Typography>
+                    </Box>
+
+                    <Typography variant="body2" color="textSecondary">
+                      Oral Conditions
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Box className="w-16 h-16 rounded-full bg-green-100 mx-auto mb-2 flex items-center justify-center">
+                    <Typography variant="h6" className="font-semibold">
+                      0
+                    </Typography>
+                  </Box>
+                )}
+              </Grid>
             </Grid>
 
             <Grid container spacing={4}>
@@ -198,12 +265,12 @@ const HealthDashboard = () => {
                   <Box className="flex items-center justify-between mb-2">
                     <Box className="flex items-center gap-2">
                       <Heart size={20} />
-                      <Typography variant="body2">Blood Pressure</Typography>
+                      <Typography variant="body2">Disease Risk</Typography>
                     </Box>
                     <ChevronRight size={20} />
                   </Box>
                   <Typography variant="h6" className="font-semibold mb-1">
-                    120/80
+                    Bloood Pressure: 120/80
                   </Typography>
                   <Typography variant="body2">Normal range</Typography>
                   <Typography variant="body2">95% accuracy</Typography>
@@ -215,43 +282,89 @@ const HealthDashboard = () => {
                   sx={{
                     backgroundColor: "green.500",
                     color: "white",
-                    p: 2,
-                    borderRadius: 2,
+                    p: 3,
+                    borderRadius: 3,
+                    boxShadow: 3, // Added shadow for depth
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start", // Align content to the start for better spacing
+                    overflow: "hidden", // Prevents overflow for the scrollable content
                   }}
                 >
-                  <Box className="flex items-center justify-between mb-2">
-                    <Box className="flex items-center gap-2">
+                  <Box className="flex items-center justify-between mb-4 w-full">
+                    <Box className="flex items-center gap-3">
                       <span className="w-5 h-5">🦷</span>
-                      <Typography variant="body2">Oral Health</Typography>
+                      <Typography
+                        variant="body2"
+                        fontWeight="bold"
+                        color="white"
+                      >
+                        Oral Health
+                      </Typography>
                     </Box>
-                    <ChevronRight size={20} />
+                    <ChevronRight size={20} color="white" />
                   </Box>
-                  {/* /oral-health/analyse */}
-                  <Typography variant="h6" className="font-semibold mb-1">
-                    Good
-                  </Typography>
-                  <Typography variant="body2">Last check: 15 ago</Typography>
-                  <Typography variant="body2">All clear</Typography>
-                  <Button
-                    component={Link}
-                    variant="contained"
+
+                  <Typography
+                    variant="h6"
+                    className="font-semibold mb-1"
                     color="white"
-                    sx={{ color: "primary.main" }}
-                    size="large"
-                    to="/dashboard"
                   >
-                    Enter Oral Dashboard
-                  </Button>
-                  <br/>
+                    Health Status: Good
+                  </Typography>
+
+                  <Typography variant="h5" color="white" mb={2}>
+                    Recent Scans
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      maxHeight: "250px", // Makes the scan list scrollable
+                      overflowY: "auto",
+                      width: "100%",
+                      mb: 2,
+                    }}
+                  >
+                    {scanHistory.length > 0 ? (
+                      scanHistory.map((scan, index) => (
+                        <Box key={index} sx={{ mb: 2 }}>
+                          <Typography variant="body1" color="white">
+                            Scan Date:{" "}
+                            {new Date(scan.analysis_date).toLocaleDateString()}
+                          </Typography>
+                          <Typography variant="body1" color="white">
+                            Detected Conditions: {scan.predictions.length}
+                          </Typography>
+                          <hr
+                            style={{
+                              borderColor: "#fff",
+                              borderWidth: 1,
+                              margin: "10px 0",
+                            }}
+                          />
+                        </Box>
+                      ))
+                    ) : (
+                      <Typography variant="body1" color="white">
+                        No scan history available.
+                      </Typography>
+                    )}
+                  </Box>
+
                   <Button
                     component={Link}
                     variant="contained"
-                    color="white"
-                    sx={{ color: "primary.main" }}
-                    size="large"
+                    sx={{
+                      backgroundColor: "white",
+                      "&:hover": {
+                        backgroundColor: "#167324", // Lighter background on hover
+                      },
+                      size: "large",
+                      width: "100%",
+                    }}
                     to="/oral-health/analyse"
                   >
-                    Quick access: Check Oral Health
+                    Check Oral Health
                   </Button>
                 </Paper>
               </Grid>
@@ -290,91 +403,6 @@ const HealthDashboard = () => {
               ))}
             </Box>
           </Box>
-        </Box>
-      </Box>
-
-      {/* Footer */}
-      <Box className="bg-white border-t border-gray-200">
-        <Box className="max-w-7xl mx-auto px-4 py-6">
-          <Grid container spacing={8}>
-            <Grid item xs={6} sm={3}>
-              <Typography
-                variant="body2"
-                fontWeight="fontWeightBold"
-                color="textPrimary"
-              >
-                Features
-              </Typography>
-              <Box>
-                <Typography variant="body2" color="textSecondary">
-                  Health Tracking
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Analytics
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Reports
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Typography
-                variant="body2"
-                fontWeight="fontWeightBold"
-                color="textPrimary"
-              >
-                Support
-              </Typography>
-              <Box>
-                <Typography variant="body2" color="textSecondary">
-                  Help Center
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Privacy
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Terms
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Typography
-                variant="body2"
-                fontWeight="fontWeightBold"
-                color="textPrimary"
-              >
-                Resources
-              </Typography>
-              <Box>
-                <Typography variant="body2" color="textSecondary">
-                  Blog
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Documentation
-                </Typography>
-              </Box>
-            </Grid>
-            <Grid item xs={6} sm={3}>
-              <Typography
-                variant="body2"
-                fontWeight="fontWeightBold"
-                color="textPrimary"
-              >
-                Company
-              </Typography>
-              <Box>
-                <Typography variant="body2" color="textSecondary">
-                  About
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Careers
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                  Contact
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
         </Box>
       </Box>
     </div>

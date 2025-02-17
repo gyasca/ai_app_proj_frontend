@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
     left: 0,
     width: "100%",
     height: "75vh",
-    backgroundImage: `url('/competence_background.jpeg')`,
+    backgroundImage: `url('/healthbackgroundsmallcropped.png')`,
     backgroundSize: "cover",
     backgroundPosition: "center",
     filter: "blur(3px)", // Apply blur here
@@ -66,7 +66,7 @@ const LandingPage = () => {
   const { user } = useContext(UserContext);
 
   useEffect(() => {
-    document.title = "CM App - Competence Mapping";
+    document.title = "HealthBuddy";
   }, []);
 
   return (
@@ -126,30 +126,30 @@ const LandingPage = () => {
           <Grid item xs={12} md={4}>
             <Paper elevation={3} className={classes.featureItem}>
               <Typography variant="h6" component="h3">
-                health info 1
+                Easy, quick diagnosis
               </Typography>
               <Typography variant="body1">
-                health info 1 description
+                AI powered diagnosis for early detection of potential conditions
               </Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
             <Paper elevation={3} className={classes.featureItem}>
               <Typography variant="h6" component="h3">
-                testimonial 1
+                Seamless health tracking
               </Typography>
               <Typography variant="body1">
-                testimonial 1 info
+                All-in-one app to track different physical health aspects
               </Typography>
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
             <Paper elevation={3} className={classes.featureItem}>
               <Typography variant="h6" component="h3">
-                feature list
+                4 Key physical health components
               </Typography>
               <Typography variant="body1">
-               feature list description
+               Oral Health, Disease risk, Diet & Nutrition, Dermatology
               </Typography>
             </Paper>
           </Grid>
