@@ -21,14 +21,13 @@ import HomeIcon from "@mui/icons-material/Home";
 import LoginIcon from "@mui/icons-material/Login";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import SchoolIcon from "@mui/icons-material/School";
-import DashboardIcon from '@mui/icons-material/Dashboard';
+import DashboardIcon from "@mui/icons-material/Dashboard";
 import LogoutIcon from "@mui/icons-material/Logout";
 import GradeIcon from "@mui/icons-material/Grade";
 import { Link } from "react-router-dom";
 import { UserContext } from "../main";
 import { NavbarProfile } from "./NavbarProfile";
 import AdminNavList from "./AdminNavList";
-
 
 export function Navbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -122,11 +121,25 @@ export function Navbar() {
                   >
                     Home
                   </Button>
-                  
                 </Stack>
 
                 {user && (
                   <>
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ display: ["none", "none", "flex"] }}
+                    >
+                      <Button
+                        startIcon={<DashboardIcon />}
+                        LinkComponent={Link}
+                        variant="text"
+                        color="inherit"
+                        to="/dashboard"
+                      >
+                        Health Dashboard
+                      </Button>
+                    </Stack>
                     {/* <Stack
                       spacing={2}
                       direction="row"
@@ -235,7 +248,7 @@ export function Navbar() {
                         color="inherit"
                         to="/chatbot"
                       >
-                        Chatbot
+                        Food Chatbot
                       </Button>
                     </Stack>
 
@@ -297,9 +310,9 @@ export function Navbar() {
                         LinkComponent={Link}
                         variant="text"
                         color="inherit"
-                        to="/dashboard"
+                        to="/oral-health/analyse"
                       >
-                        Health Dashboard
+                        Oral Health
                       </Button>
                     </Stack>
                   </>
