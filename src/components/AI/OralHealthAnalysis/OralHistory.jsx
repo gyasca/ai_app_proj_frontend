@@ -292,7 +292,7 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
           Delete Selected
         </Button>
       )}
-      <Typography variant="h4" sx={{ marginBottom: 2 }}>
+      <Typography variant="h5" sx={{ marginBottom: 2 }}>
         Oral Health History
       </Typography>
       {oralHistory.length === 0 ? (

@@ -58,6 +58,7 @@ function OhamodelPredict() {
         justifyContent: "center",
         alignItems: "center",
         mt: 2,
+        mb: 4,
       }}
     >
       {/* Header Card - Full Width */}
@@ -65,10 +66,10 @@ function OhamodelPredict() {
       <Card className="shadow-sm hover:shadow-md transition-shadow" sx={{ mb: 2 }}>
         <CardContent className="p-6">
           <Box className="flex flex-col">
-            <Typography variant="h5" className="font-semibold">
+            <Typography variant="h3" className="font-semibold">
               Oral Analysis
             </Typography>
-            <Typography variant="body2" color="textSecondary">
+            <Typography variant="body1" color="textSecondary">
               AI-Powered Oral Condition Diagnosis
             </Typography>
           </Box>
