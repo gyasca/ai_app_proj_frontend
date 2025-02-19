@@ -15,15 +15,6 @@ import { useSnackbar } from "notistack";
 import { validateAdmin } from "../../functions/user";
 import { Box, List, Divider } from "@mui/material";
 import ViewSpecificUser from "./ViewSpecificUser";
-import CreateModule from "./Module/CreateModule";
-import EditModule from "./Module/EditModule";
-import ViewModules from "./Module/ViewModules";
-import ViewSpecificModule from "./Module/ViewSpecificModule";
-
-// Course (CoursModule functionalities are already inbuilt to course-related pages)
-import CreateCourse from "./Course/CreateCourse";
-import ViewCourses from "./Course/ViewCourses";
-import ViewSpecificCourse from "./Course/ViewSpecificCourse";
 
 function AdminRoutes() {
   // Routes for admin pages. To add authenication so that only admins can access these pages, add a check for the user's role in the UserContext
@@ -88,18 +79,6 @@ function AdminRoutes() {
           <Route path="/users/bulk-create" element={<BulkCreateUser />} />
           <Route path="/users/edit/:userId" element={<EditUser />} />
           <Route path="/users/:userId" element={<ViewSpecificUser />} />
-
-          {/* Courses */}
-          <Route path="/courses/create" element={<CreateCourse />} />
-          <Route path="/courses" element={<ViewCourses />} />
-          {/* <Route path="/courses/edit/:courseModuleCode" element={<E />} /> */}
-          <Route path="/courses/:courseCode" element={<ViewSpecificCourse />} />
-
-          {/* Modules */}
-          <Route path="/modules/create" element={<CreateModule />} />
-          <Route path="/modules" element={<ViewModules />} />
-          <Route path="/modules/edit/:moduleCode" element={<EditModule />} />
-          <Route path="/modules/:moduleCode" element={<ViewSpecificModule />} />
 
         </Routes>
       </Box>
