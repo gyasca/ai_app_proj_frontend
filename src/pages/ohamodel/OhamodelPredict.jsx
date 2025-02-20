@@ -52,18 +52,20 @@ function OhamodelPredict() {
   }, [oralHistory]);
 
   return (
-    <Container
+    <Box
       sx={{
-        width: "100%",
-        justifyContent: "center",
-        alignItems: "center",
         mt: 2,
         mb: 4,
+        px: 2, // Remove padding on the left and right to utilize full width
+        mx: 0,
+        maxWidth: "100%", // Ensure it takes the full available width
       }}
     >
       {/* Header Card - Full Width */}
-
-      <Card className="shadow-sm hover:shadow-md transition-shadow" sx={{ mb: 2 }}>
+      <Card
+        className="shadow-sm hover:shadow-md transition-shadow"
+        sx={{ mb: 2 }}
+      >
         <CardContent className="p-6">
           <Box className="flex flex-col">
             <Typography variant="h3" className="font-semibold">
@@ -91,7 +93,7 @@ function OhamodelPredict() {
         labelMapping={labelMapping}
         jwtUserId={jwtUser()}
       />
-    </Container>
+    </Box>
   );
 }
 
