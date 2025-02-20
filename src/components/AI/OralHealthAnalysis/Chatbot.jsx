@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Box, Paper, Typography, TextField, Button, Switch, FormControlLabel } from "@mui/material";
+import { Box, Paper, Typography, TextField, Button, Switch, FormControlLabel, CircularProgress } from "@mui/material";
 import http from "../../../http";
 import { marked } from "marked";
 
@@ -210,7 +210,7 @@ const Chatbot = ({ singleOralResult, labelMapping, jwtUserId }) => {
 
       <Box
         sx={{
-          height: 300,
+          height: 500,
           overflowY: "auto",
           display: "flex",
           flexDirection: "column",
@@ -242,7 +242,7 @@ const Chatbot = ({ singleOralResult, labelMapping, jwtUserId }) => {
         <div ref={chatEndRef} />
       </Box>
 
-      {isLoading && <Typography>Loading...</Typography>}
+      {isLoading && <CircularProgress sx={{ display: "block", margin: "auto", marginTop: 2 }} />}
       {error && <Typography color="error">{error}</Typography>}
 
       <Box sx={{ display: "flex", mt: 1 }}>

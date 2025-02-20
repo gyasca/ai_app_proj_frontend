@@ -53,8 +53,8 @@ export function NavbarProfile() {
     <>
       &nbsp;
       <Typography sx={{ textAlign: "right" }}>
-        <strong>{user.name}</strong>
-        <br />
+        <strong>{user.username}</strong>
+        <br/>
         {user.email}
       </Typography>
       &nbsp;

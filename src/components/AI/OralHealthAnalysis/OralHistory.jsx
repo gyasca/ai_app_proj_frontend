@@ -365,7 +365,7 @@ const OralHistory = ({ labelMapping, refreshTrigger, jwtUserId }) => {
       <Typography variant="h5" sx={{ mt: 4, mb: 2 }}>
         Analytics
       </Typography>
-      <Grid container spacing={3}>
+      <Grid container spacing={3} sx={{ml: 8}}>
         {/* Chart 1: Condition Count Over Scans */}
         <Grid item xs={12} md={6}>
           <Typography variant="h6">Condition Count Over Scans</Typography>

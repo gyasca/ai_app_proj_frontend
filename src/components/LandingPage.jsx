@@ -102,7 +102,7 @@ const LandingPage = () => {
             color: "#888",
             mb: 4
           }}>
-            By Gregory, Ryan, Azrel, Charmain
+            By Ryan, Azrel, Charmain, Gregory(Team Lead)
           </Typography>
           <Button
             component={Link}

@@ -15,37 +15,42 @@ import PredictionHistory from "./dp_model/PredictionHistory";
 import AcnemodelPredict from "./acnemodel/AcnemodelPredict";
 import AnalysisHistory from "./acnemodel/AnalysisHistory";
 import ChatBot from "./acnemodel/ChatBot";
-
 import EditProfile from "./EditProfile";
-
-// import Login from './Login'
-// import Register from './Register'
-// import Verify from './Verify'
-// import Reset from './Reset'
-// import ProfileRoutes from './profile/ProfileRoutes'
-// import DriverRoutes from './driver/DriverRoutes'
-// import SupportRoutes from './support/SupportRoutes'
-// import RiderRoutes from './rider/RiderRoutes'
-// import Bicycle from './Bicycle'
-// import ReportBicycle from './ReportBicycle'
-// import BicycleHistory from './BicycleHistory'
-// import ProductRoutes from './products/ProductRoutes'
-// import CartRoutes from './cart/CartRoutes'
-// import Wishlist from './wishlist/ViewWishlist'
-// import About from './About'
 import { UserContext } from "../main";
+import useUser from "../context/useUser";
 
 function UserRoutes() {
-  // Routes for admin pages. To add authenication so that only admins can access these pages, add a check for the user's role in the UserContext
   const { setIsAdminPage } = useContext(UserContext);
-  const { user } = useContext(UserContext);
+  const {jwtUser} = useUser();
+
+  const jwtId = jwtUser();
 
   useEffect(() => {
     setIsAdminPage(false);
   }, []);
+
   return (
     <Routes>
       <Route path="*" element={<NotFound />} />
+      {/* Public routes */}
+      <Route path="/" element={<Home />} />
+      <Route path="/register" element={!jwtId ? <Register /> : <Navigate to="/" />} />
+      <Route path="/login" element={!jwtId ? <Login /> : <Navigate to="/" />} />
+      
+      {/* Protected routes (requires login) */}
+      <Route path="/profile/edit" element={jwtId ? <EditProfile /> : <Navigate to="/login" />} />
+      <Route path="/map" element={jwtId ? <Map /> : <Navigate to="/login" />} />
+      <Route path="/studentportal" element={jwtId ? <StudentPortal /> : <Navigate to="/login" />} />
+      <Route path="/test1" element={jwtId ? <Test1 /> : <Navigate to="/login" />} />
+      <Route path="/dashboard" element={jwtId ? <HealthDashboard /> : <Navigate to="/login" />} />
+      <Route path="/oral-health/analyse" element={jwtId ? <OhamodelPredict /> : <Navigate to="/login" />} />
+      <Route path="/disease-prediction/analyse" element={jwtId ? <DpModelPredict /> : <Navigate to="/login" />} />
+      <Route path="/prediction-history" element={jwtId ? <PredictionHistory /> : <Navigate to="/login" />} />
+      <Route path="/acne-health/analyse" element={jwtId ? <AcnemodelPredict /> : <Navigate to="/login" />} />
+      <Route path="/acne-health/chatbot" element={jwtId ? <ChatBot /> : <Navigate to="/login" />} />
+      <Route path="/acne-health/analysis-history" element={jwtId ? <AnalysisHistory /> : <Navigate to="/login" />} />
+
+      {/* <Route path="*" element={<NotFound />} />
       <Route path="/" element={<Home />} />
       <Route path="/register" element={<Register />} />
       <Route path="/login" element={<Login />} />
@@ -60,33 +65,14 @@ function UserRoutes() {
 
       {/* if want to use this route must make sure to update the rest of the buttons that
       lead here. (unupdated as of 12 jan 2025) */}
-      <Route path="/dashboard-old" element={<Dashboard />} />
+      {/* <Route path="/dashboard-old" element={<Dashboard />} />
 
       <Route path="/acne-health/analyse" element={<AcnemodelPredict />} />
       <Route path="/acne-health/chatbot" element={<ChatBot />} />
-      <Route
-        path="/acne-health/analysis-history"
-        element={<AnalysisHistory />}
-      />
-
-      {/* <Route path="/register" element={<Register />} /> */}
-      {/* <Route path="/login" element={!user ? <Login /> : <Navigate to={"/"} />} />
-            <Route path="/register" element={!user ? <Register /> : <Navigate to={"/"} />} />
-            <Route path="/test" element={<Test />} />
-            <Route path="/verify" element={<Verify />} />
-            <Route path="/reset" element={<Reset />} />
-            <Route path="/profile/*" element={<ProfileRoutes />} />
-            <Route path="/driver/*" element={<DriverRoutes />} />
-            <Route path="/support/*" element={<SupportRoutes />} />
-            <Route path="/bicycle" element={<Bicycle />} />
-            <Route path="/bicycle/report" element={<ReportBicycle />} />
-            <Route path="/bicycle/report/:id" element={<ReportBicycle />} />
-            <Route path="/bicycle/usages" element={<BicycleHistory />} />
-            <Route path="/products/*" element={<ProductRoutes />} />
-            <Route path="/cart/*" element={<CartRoutes />} />
-            <Route path="/riderequests/*" element={<RiderRoutes />} />
-            <Route path="/wishlist" element={<Wishlist/>} />
-            <Route path="/about" element={<About />} /> */}
+      <Route path="/acne-health/analysis-history" element={<AnalysisHistory />}/>  */}
+      
+      {/* Default route for when the user isn't logged in and tries to access protected pages */}
+      <Route path="/dashboard-old" element={jwtId ? <Dashboard /> : <Navigate to="/login" />} />
     </Routes>
   );
 }
