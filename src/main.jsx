@@ -167,6 +167,8 @@ function MainApp() {
 
   const [userLoading, setUserLoading] = useState(true);
 
+  const [conditionCountRefresh, setConditionCountRefresh] = useState(null);
+
   // Active page global context to store the current page (For navbar item highlight)
   const [activePage, setActivePage] = useState(null);
 
@@ -221,6 +223,8 @@ function MainApp() {
           updateUser: updateUser,
           activePage: activePage,
           setActivePage: setActivePage,
+          conditionCountRefresh: conditionCountRefresh,
+          setConditionCountRefresh: setConditionCountRefresh,
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column" }}>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import ImageUploadForPredictionGregory from "../../components/AI/OralHealthAnalysis/ImageUploadForPredictionGregory";
 import OralHistory from "../../components/AI/OralHealthAnalysis/OralHistory";
 import useUser from "../../context/useUser";
@@ -13,10 +13,12 @@ import {
   CardContent,
   Container,
 } from "@mui/material";
+import { UserContext } from "../../main";
 
 function OhamodelPredict() {
   const [oralHistory, setOralHistory] = useState([]);
   const { user, jwtUser } = useUser();
+  const {conditionCountRefresh, setConditionCountRefresh} = useContext(UserContext);
 
   const labelMapping = {
     0: "Caries",
@@ -48,6 +50,7 @@ function OhamodelPredict() {
 
   // Debug useEffect to monitor state changes
   useEffect(() => {
+    setConditionCountRefresh(oralHistory);
     console.log("oralHistory state updated:", oralHistory);
   }, [oralHistory]);
 

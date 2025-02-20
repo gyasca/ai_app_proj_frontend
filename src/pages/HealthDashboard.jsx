@@ -36,12 +36,16 @@ const HealthDashboard = () => {
 
   const [scanHistory, setScanHistory] = useState([]);
 
+  const user_id = jwtUser();
+
+  const { conditionCountRefresh } = useContext(UserContext);
+
   useEffect(() => {
     const fetchScanHistory = async (userId) => {
       setIsLoading(true);
       try {
         const response = await http.get("/history/oha/get-history", {
-          params: { user_id: jwtUser() },
+          params: { user_id: user_id },
         });
 
         if (response.status === 200 && response.data.history.length === 0) {
@@ -67,7 +71,7 @@ const HealthDashboard = () => {
     };
 
     fetchScanHistory();
-  }, []);
+  }, [user_id, conditionCountRefresh]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -180,21 +184,27 @@ const HealthDashboard = () => {
               {/* /oral-health/analyse */}
               <Grid item xs={3} className="text-center">
                 {scanHistory.length > 0 ? (
-                  // Display only the latest scan
-                  <Box
-                    key={scanHistory[scanHistory.length - 1].analysis_date}
-                    sx={{ mb: 2 }}
-                  >
-                    <Box className="w-16 h-16 rounded-full bg-purple-100 mx-auto mb-2 flex items-center justify-center">
-                      <Typography variant="h6" className="font-semibold">
-                        {scanHistory[scanHistory.length - 1].predictions.length}
+                  // Sort scanHistory to ensure the latest scan comes last
+                  (scanHistory.sort(
+                    (a, b) =>
+                      new Date(b.analysis_date) - new Date(a.analysis_date)
+                  ),
+                  (
+                    <Box
+                      key={scanHistory[0].analysis_date} // Use the first item now that the array is sorted
+                      sx={{ mb: 2 }}
+                    >
+                      <Box className="w-16 h-16 rounded-full bg-purple-100 mx-auto mb-2 flex items-center justify-center">
+                        <Typography variant="h6" className="font-semibold">
+                          {scanHistory[0].predictions.length}
+                        </Typography>
+                      </Box>
+
+                      <Typography variant="body2" color="textSecondary">
+                        Oral Conditions
                       </Typography>
                     </Box>
-
-                    <Typography variant="body2" color="textSecondary">
-                      Oral Conditions
-                    </Typography>
-                  </Box>
+                  ))
                 ) : (
                   <Box className="w-16 h-16 rounded-full bg-green-100 mx-auto mb-2 flex items-center justify-center">
                     <Typography variant="h6" className="font-semibold">
